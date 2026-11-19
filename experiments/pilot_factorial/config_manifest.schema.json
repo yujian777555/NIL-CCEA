@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NIL-CCEA run manifest",
+  "type": "object",
+  "required": ["protocol_version", "runner_version", "source_commit", "environment", "model", "decoding", "modules", "configuration_id", "config_hash", "mode"],
+  "properties": {
+    "protocol_version": {"type": "string"},
+    "runner_version": {"type": "string"},
+    "source_commit": {"type": "string"},
+    "environment": {"type": "object"},
+    "model": {"type": "object"},
+    "decoding": {"type": "object"},
+    "modules": {"type": "object", "minProperties": 4},
+    "configuration_id": {"type": "string", "pattern": "^cfg-[01]{4}$"},
+    "config_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "created_at_utc": {"type": "string"},
+    "mode": {"enum": ["mock", "tau2-text-v1"]}
+  },
+  "additionalProperties": false
+}

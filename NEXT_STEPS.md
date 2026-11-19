@@ -2,15 +2,26 @@
 
 **Current task:** execute the Phase 0A handoff prompt in [docs/EXECUTOR_PROMPT_PHASE0A.md](docs/EXECUTOR_PROMPT_PHASE0A.md).
 
+## Completed in the current Phase 0A turn
+
+1. Created branch `phase0a-literature-environment-audit` from remote main SHA `98e202f21bb82f6df4835f48e4d1c922113719ad`.
+2. Added the primary-source literature audit and updated the literature ledger.
+3. Audited tau-bench, tau2-bench, ToolSandbox, Toolathlon, and AgentSpec. Locked tau2-bench v1.0.1 as the primary candidate and kept ToolSandbox as a diagnostic fallback.
+4. Added draft module contracts and the pre-freeze pilot design.
+5. Implemented the local mock runner, manifest/hash generation, retry/failure accounting, cost ledger, raw episode schema, and pairwise interaction estimator.
+6. Added typed mock module contracts and static leakage checks.
+7. Added the tau2 adapter entry point behind an external-dependency gate.
+8. Ran the local test suite with eleven passing tests and zero real API calls.
+
 ## Immediate execution order
 
-1. **Take over safely.** Verify the latest remote main SHA, local worktree, and branch. Create a dedicated Phase 0A branch; do not overwrite existing work or force-push.
-2. **Run literature and environment audits in parallel.** Verify primary sources for the closest Agent-module evolution, interaction/linkage learning, noisy optimization, and cooperative co-evolution work. Inspect tau-bench and other suitable tool-use environments from their official sources.
-3. **Make an evidence-backed environment decision.** Confirm task/version stability, reset semantics, scoring, trajectory access, and independent module replacement. Do not force the provisional Planner/Selector/Caller/Synthesizer split if source code does not support it.
-4. **Freeze module contracts and variants.** Define identical interfaces and permissions for two mechanism-distinct variants per confirmed slot. Prevent task leakage and confounding changes.
-5. **Prepare the pilot runner and protocol.** Implement immutable manifests, task/seed pairing, raw trajectory references, failure/retry accounting, deterministic cache keys, and total cost accounting. Pre-register the primary endpoint, practical effect threshold, uncertainty method, and multiplicity handling.
-6. **Run a mock smoke test first.** Validate all configurations, reset/pairing, failure paths, and cost accounting without paid model calls.
-7. **Independent review, then pilot.** Only after G0-G3 pass and the runner is independently reviewed, run the frozen factorial pilot. The existing 12 tasks × 2 seeds × 16 configurations is a planning target, subject to pre-freeze cost/power analysis.
+1. Run the tau2 `HalfDuplexAgent` adapter in a Python 3.12–3.13 tau2 v1.0.1 environment. The adapter entry point is implemented but unvalidated.
+2. Add adapter-side no-key construction tests that verify identical tool lists, domain policy, model version, decoding settings, and interface schemas across all 16 manifests.
+3. Add raw-file loading and derived-summary recomputation tests so every interaction estimate can be regenerated from `episodes.jsonl`.
+4. Resolve G2 by freezing the tau2 task IDs, primary endpoint, practical threshold, Holm correction, missing-run policy, retry limit, and stop budget.
+5. Produce a real API cost estimate and stop condition. Ask for approval before any paid calls.
+6. Run one real tau2 adapter smoke only after the cost gate. Preserve all raw results and mark the run exploratory.
+7. Review the smoke and then decide whether the 12-task factorial pilot is sufficiently powered and affordable.
 
 ## Research guardrails
 
@@ -27,10 +38,10 @@
 
 | Gate | Required evidence | State |
 |---|---|---|
-| G0 Literature | Verified primary-source bibliography and mechanism comparison | TODO |
-| G1 Environment | Source-backed benchmark and module-replacement compatibility | TODO |
-| G2 Contracts/protocol | Frozen interfaces, variants, endpoint, statistics, and cost rules | TODO |
-| G3 Smoke | All configurations, pairing/reset, failure and cost tests pass | TODO |
+| G0 Literature | Verified primary-source bibliography and mechanism comparison | PASS |
+| G1 Environment | Source-backed benchmark and module-replacement compatibility | PASS at source level |
+| G2 Contracts/protocol | Frozen interfaces, variants, endpoint, statistics, and cost rules | NEEDS_REVISION |
+| G3 Smoke | All configurations, pairing/reset, failure and cost tests pass | PASS for mock scope |
 | G4 Pilot | Frozen factorial pilot and reproducible interaction estimates | NOT STARTED |
 | G5 Search | Fair-budget linkage-aware evolutionary comparison | NOT STARTED |
 
