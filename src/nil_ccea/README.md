@@ -1,6 +1,6 @@
 # NIL-CCEA source package
 
-The current package contains a local mock runner and pure statistical components. The tau2 adapter remains unvalidated and is intentionally kept separate from the mock path.
+The current package contains a local mock runner, pure statistical components, typed module contracts, and an explicit tau2 adapter entry point. The tau2 adapter remains unvalidated and is intentionally kept separate from the mock path.
 
 Planned modules:
 
@@ -12,5 +12,6 @@ Planned modules:
 - `runner.py`: local reset, trajectory, retry, failure, and cost accounting;
 - `ledger.py`: shared evaluation-cost ledger;
 - `leakage.py`: conservative static evaluator-token checks.
+- `tau2_adapter.py`: delayed-import `HalfDuplexAgent` adapter for tau2 v1.0.1.
 
 Keep statistical estimation pure and unit-testable. Keep benchmark adapters separate from algorithm logic.

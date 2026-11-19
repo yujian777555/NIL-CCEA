@@ -17,11 +17,12 @@
 - A draft four-slot module contract and pre-freeze pilot design are recorded. The contract keeps Planner, Selector, Caller, and Synthesizer behind separate interfaces and identical tool permissions.
 - A pure-local mock runner now generates all 16 configurations, immutable manifests, config hashes, task/seed pairing, retry/failure records, raw trajectories, cost ledger entries, and pairwise interaction estimates.
 - Pure-local Planner, Selector, Caller, and Synthesizer variants now share typed contracts and pass static evaluator-token leakage checks.
-- Ten automated tests pass on the host Python 3.10.1 interpreter. The mock run used zero real API calls.
+- A tau2 `HalfDuplexAgent` adapter entry point now exists behind an explicit external-dependency gate. It has not been run against tau2.
+- Eleven automated tests pass on the host Python 3.10.1 interpreter. The mock run used zero real API calls.
 
 ## Not yet completed
 
-- Live tau2 custom-agent adapter smoke and source-level leakage audit.
+- Live tau2 custom-agent adapter smoke. Static leakage checks are complete for local module variants.
 - Confirmation of independently replaceable module slots in a real tau2 execution.
 - Freezing the primary endpoint, practical threshold, task IDs, and cost stop rules.
 - Paid API cost estimate and user approval before any real benchmark call.

@@ -10,12 +10,13 @@
 4. Added draft module contracts and the pre-freeze pilot design.
 5. Implemented the local mock runner, manifest/hash generation, retry/failure accounting, cost ledger, raw episode schema, and pairwise interaction estimator.
 6. Added typed mock module contracts and static leakage checks.
-7. Ran the local test suite with ten passing tests and zero real API calls.
+7. Added the tau2 adapter entry point behind an external-dependency gate.
+8. Ran the local test suite with eleven passing tests and zero real API calls.
 
 ## Immediate execution order
 
-1. Implement the tau2 `HalfDuplexAgent` adapter with Planner, Selector, Caller, and Synthesizer as independently hashed components. Keep the adapter compatible with tau2 v1.0.1 and do not use hidden evaluator fields.
-2. Add adapter-side static leakage checks and a no-key construction test that verifies identical tool lists, domain policy, model version, decoding settings, and interface schemas across all 16 manifests.
+1. Run the tau2 `HalfDuplexAgent` adapter in a Python 3.12–3.13 tau2 v1.0.1 environment. The adapter entry point is implemented but unvalidated.
+2. Add adapter-side no-key construction tests that verify identical tool lists, domain policy, model version, decoding settings, and interface schemas across all 16 manifests.
 3. Add raw-file loading and derived-summary recomputation tests so every interaction estimate can be regenerated from `episodes.jsonl`.
 4. Resolve G2 by freezing the tau2 task IDs, primary endpoint, practical threshold, Holm correction, missing-run policy, retry limit, and stop budget.
 5. Produce a real API cost estimate and stop condition. Ask for approval before any paid calls.

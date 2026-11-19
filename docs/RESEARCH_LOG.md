@@ -48,5 +48,6 @@
 - Added a pure difference-in-differences estimator with context averaging, task-cluster bootstrap, and `UNCERTAIN` state handling.
 - Added configuration, episode, cost ledger, and environment lock schemas under `experiments/pilot_factorial/`.
 - Added typed module contracts, eight pure-local mechanism variants, and static evaluator-token leakage checks.
-- Ran the local suite with ten passing tests on host Python 3.10.1. The mock run generated 32 episodes and made zero real API calls. The synthetic positive interaction is a runner validation signal only and is not a research result.
+- Added a tau2 `HalfDuplexAgent` adapter entry point with an explicit external-dependency gate. It is implemented but unvalidated against tau2.
+- Ran the local suite with eleven passing tests on host Python 3.10.1. The mock run generated 32 episodes and made zero real API calls. The synthetic positive interaction is a runner validation signal only and is not a research result.
 - G0 is PASS, source-level G1 is PASS, G2 is NEEDS_REVISION until the tau2 adapter and endpoint freeze are reviewed, and G3 is PASS for the mock scope.
