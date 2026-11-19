@@ -8,7 +8,7 @@
 
 - **Project stage:** PRE-EXPERIMENT
 - **Algorithm label:** NIL-CCEA v0.1 (working name; not a validated contribution)
-- **Current objective:** establish a reproducible module-interaction pilot before implementing the full evolutionary algorithm
+- **Current objective:** complete the Phase 0A literature and environment audit, then validate a reproducible module-interaction pilot
 - **Evidence status:** no experimental performance claim has been established
 - **Remote repository:** https://github.com/yujian777555/NIL-CCEA (public)
 
@@ -32,7 +32,11 @@ All five steps remain research hypotheses until independently tested.
 - **H2 — task dependence:** interaction strengths or signs can differ across task families or operating conditions.
 - **H3 — search utility:** using a reliable linkage model improves search quality or sample efficiency over fair-budget independent and non-linkage baselines.
 
-A null result for one module pair is not a project stop condition. It is evidence to inspect task choice, module variants, effect size, measurement power, and the search mechanism. Claims must remain bounded by the evidence.
+A null result for one module pair is not a project stop condition. It is evidence to inspect task choice, module variants, effect size, measurement power, and task diversity. Claims must remain bounded by the evidence.
+
+## Current execution handoff
+
+The immediate task is defined in [docs/EXECUTOR_PROMPT_PHASE0A.md](docs/EXECUTOR_PROMPT_PHASE0A.md). It directs the executor to audit primary sources and benchmark compatibility in parallel, verify whether module slots can be independently replaced, and reach a mock-tested pilot harness before starting the formal experiment.
 
 ## Repository map
 
@@ -45,6 +49,7 @@ A null result for one module pair is not a project stop condition. It is evidenc
 │   ├── RESEARCH_CHARTER.md
 │   ├── ALGORITHM_SPEC_v0.1.md
 │   ├── EXPERIMENT_PROTOCOL_PILOT.md
+│   ├── EXECUTOR_PROMPT_PHASE0A.md
 │   ├── LITERATURE_LEDGER.md
 │   ├── RESEARCH_LOG.md
 │   └── HANDOFF.md
@@ -68,20 +73,8 @@ A null result for one module pair is not a project stop condition. It is evidenc
 6. Every result must record the source commit, config hash, task/version identifiers, model/provider version, decoding settings, seeds, and run manifest.
 7. Never commit API keys, credentials, personal data, or unredacted provider logs.
 8. Keep literature claims, hypotheses, implementation status, and empirical findings explicitly separate.
-9. Update `STATUS.md`, `RESEARCH_LOG.md`, and `HANDOFF.md` after each material milestone.
-
-## First milestone
-
-Complete the literature audit and a small, reproducible factorial pilot with four frozen module slots and two variants per slot. The pilot is designed to test interaction measurement, not to claim that NIL-CCEA already outperforms existing methods.
-
-See:
-
-- [Research charter](docs/RESEARCH_CHARTER.md)
-- [Algorithm specification v0.1](docs/ALGORITHM_SPEC_v0.1.md)
-- [Pilot protocol](docs/EXPERIMENT_PROTOCOL_PILOT.md)
-- [Literature ledger](docs/LITERATURE_LEDGER.md)
-- [Execution handoff](docs/HANDOFF.md)
+9. Update STATUS.md, RESEARCH_LOG.md, and HANDOFF.md after each material milestone.
 
 ## Citation and provenance policy
 
-The literature ledger currently contains candidate leads, not a completed bibliography. Verify each title, authors, venue/version, DOI or arXiv identifier, and exact mechanism from the primary source before using it in a paper or treating it as a definitive baseline.
+The literature ledger contains candidate leads until each item has been verified. Confirm the exact title, authors, venue/version, DOI or arXiv identifier, and mechanism from primary sources before citing it or treating it as a definitive baseline.

@@ -1,78 +1,51 @@
 # Executor Handoff — NIL-CCEA
 
-**Repository:** https://github.com/yujian777555/NIL-CCEA (public, default branch `main`).  
-**Current task:** prepare and execute the measurement-first module-interaction pilot.  
-**Do not:** implement the full evolutionary optimizer before the pilot protocol and environment are validated.
+**Repository:** https://github.com/yujian777555/NIL-CCEA (public, default branch main).  
+**Current workstream:** Phase 0A — primary-source literature audit and benchmark/environment compatibility audit.  
+**Authoritative execution prompt:** [docs/EXECUTOR_PROMPT_PHASE0A.md](EXECUTOR_PROMPT_PHASE0A.md).  
+**Current research state:** PRE-EXPERIMENT. No benchmark experiment or performance result has been established.
 
 ## Mission
 
-Build a reproducible harness to test whether four modular Agent slots (Planner, Selector, Caller, Synthesizer), each with two frozen variants, exhibit measurable pairwise non-additive effects under a controlled task environment.
+Establish whether measurable, reproducible non-additive interactions exist among independently replaceable LLM-Agent modules, then use reliable signed and uncertainty-aware linkage to guide cooperative evolutionary search. Evolutionary computation and module-interaction linkage are the method core. A fixed total evaluation budget is a fairness constraint, not the research contribution.
 
-## Phase 0 — literature and environment audit
+## Immediate actions
 
-1. Verify primary-source bibliographic records and mechanisms for every item in `LITERATURE_LEDGER.md`.
-2. Inspect candidate benchmarks and confirm independent replacement of the four module slots is possible.
-3. Select one environment only after documenting licensing, reset semantics, task IDs, tool permissions, and compatibility.
-4. Freeze the model/provider version, decoding parameters, tool environment, and module interface contracts.
-5. If no suitable public benchmark supports the required controls, propose a small controlled environment and explain its external-validity limits.
+1. Verify the current remote HEAD and worktree; create a dedicated Phase 0A branch.
+2. Audit primary sources for the closest Agent-module evolution, interaction detection/linkage learning, noisy black-box optimization, and cooperative co-evolution work.
+3. In parallel, inspect tau-bench and other suitable tool-use environments using official source code and documentation.
+4. Verify whether the provisional Planner, Selector, Caller, and Synthesizer slots can truly be replaced independently under identical permissions and interfaces.
+5. If the four-slot design is incompatible, propose and document an evidence-backed alternative before running experiments.
+6. Define module contracts and mechanism-distinct variants only after the environment decision.
+7. Build the smallest auditable runner, validate it with mock tests, and obtain independent review before the formal factorial pilot.
 
-## Phase 1 — runner and test harness
+## Planned measurement design
 
-Implement:
+The provisional design uses four binary module slots (2^4 = 16 configurations) and paired task/environment-seed evaluations. The existing target of 12 tasks × 2 seeds × 16 configurations = 384 episodes is a planning value, not an observed result or an immutable requirement. Reassess cost and statistical sensitivity before protocol freeze.
 
-- a declarative config for the 16 factorial configurations;
-- frozen module variant identifiers and content hashes;
-- task/seed pairing and environment reset;
-- structured episode logs and raw trajectory references;
-- retry/failure accounting;
-- token/API cost accounting;
-- deterministic cache keys;
-- manifest generation with source commit and config hash;
-- tests that verify every configuration differs only in intended module slots.
+For each module pair, estimate a paired difference-in-differences interaction contrast averaged over the contexts of the other module slots. Use task-clustered uncertainty, pre-specified practical effect threshold and multiplicity handling. Do not interpret uncertain edges as independence.
 
-Start with a tiny smoke test (2 tasks × 1 seed × 16 configurations). Do not launch the planned pilot until smoke tests and an independent review pass.
+## Required controls
 
-## Phase 2 — factorial pilot
+- Preserve task/version, seed, model/provider/version, decoding settings, module hashes, runner commit, and config hash.
+- Keep raw trajectories immutable and summaries reproducible.
+- Count all probes, failures, retries, and diagnostic evaluations in total cost.
+- Never silently drop failed episodes or retry without accounting.
+- Do not change tasks, module variants, prompts, endpoints, or decoding parameters mid-run without a new protocol version.
+- No base-model training or fine-tuning in this milestone.
+- Do not claim novelty, significance, or improvement without primary-source and experimental evidence.
+- Do not stop the project because one module pair is null or one benchmark is incompatible; diagnose measurement validity, task dependence, noise, power, and alternatives without manufacturing positive results.
+- Keep NIL-CCEA isolated from all other repositories.
 
-Planned target: 12 tasks × 2 environment seeds × 16 configurations = 384 episodes. This is a planning target and may be changed only before the pilot is frozen, with a documented cost/power rationale.
+## Acceptance gates
 
-Compute all six pairwise module interaction contrasts. Average over contexts of the other module slots. Use task-clustered uncertainty estimates and pre-specified multiplicity handling. Keep weak and uncertain edges distinct.
+- G0: primary-source literature audit complete and closest prior art compared.
+- G1: benchmark/task/reset/scoring/trajectory and module-replacement compatibility documented.
+- G2: module contracts, variants, primary endpoint, statistical protocol, and cost rules frozen.
+- G3: mock smoke test and automated pairing/reset/failure/cost tests pass.
+- G4: formal factorial pilot run after independent review.
+- G5: fair-budget evolutionary comparison against independent and non-linkage baselines.
 
-## Phase 3 — report and handoff
+## Required handoff report
 
-Deliver:
-
-- exact repository commit SHA and clean/dirty status;
-- environment and model lock files;
-- frozen module variant manifests;
-- test results;
-- run manifest and cost ledger;
-- raw data location and checksums;
-- analysis script and machine-readable outputs;
-- concise report with estimates, confidence intervals, multiplicity handling, task-family stability, and limitations;
-- updated `STATUS.md`, `RESEARCH_LOG.md`, and this handoff file.
-
-## Engineering and research constraints
-
-- Never commit API keys or credentials. Read secrets from environment variables or an approved secret manager.
-- Do not silently retry, omit, or relabel failed episodes.
-- Count every probe and retry in total cost.
-- Do not change prompts, module code, task set, model version, or decoding parameters mid-run without creating a new protocol/config version.
-- Do not claim exact reproduction of a paper unless its implementation and settings have been matched and documented.
-- Keep raw trajectories immutable; summaries must be regenerable.
-- No training/fine-tuning in this milestone.
-- Do not stop the project merely because one pair has no interaction. Diagnose measurement power and task dependence, then report the evidence accurately.
-
-## Acceptance checklist
-
-- [ ] Primary-source literature audit complete
-- [ ] Benchmark compatibility documented
-- [ ] Module contracts frozen
-- [ ] 16 configurations generated and hash-checked
-- [ ] Smoke test passes
-- [ ] Pairing/reset tests pass
-- [ ] Cost/retry accounting tests pass
-- [ ] Pilot run completed or a documented blocker identified
-- [ ] All six pairwise interaction contrasts reproducible from raw data
-- [ ] Independent review completed
-- [ ] Repository status and next handoff updated
+Report exact repository, branch, start/end SHA, changed files, primary-source URLs, environment evidence, test commands/results, API usage/cost, gate status, unresolved risks, and the next concrete experiment. Clearly label completed, implemented-but-unvalidated, planned, and hypothesized work.
