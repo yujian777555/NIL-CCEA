@@ -11,8 +11,8 @@ Establish whether measurable, reproducible non-additive interactions exist among
 
 ## Immediate actions
 
-1. Implement the tau2 v1.0.1 `HalfDuplexAgent` adapter and validate four independently hashed modules under identical tools and policy.
-2. Add static leakage checks, raw-file replay, and adapter construction tests.
+1. Run the implemented tau2 v1.0.1 `HalfDuplexAgent` adapter in a Python 3.12–3.13 tau2 environment and validate four independently hashed modules under identical tools and policy.
+2. Complete adapter-side no-key construction checks and raw-file replay checks.
 3. Freeze task IDs, primary endpoint, practical threshold, Holm correction, missing-run and retry policy.
 4. Estimate paid API cost and obtain approval before any real call.
 5. Run one exploratory tau2 smoke, preserve all raw results, and review before the factorial pilot.
