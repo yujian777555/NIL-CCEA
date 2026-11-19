@@ -1,14 +1,16 @@
 # NIL-CCEA source package
 
-Implementation begins only after the module interfaces and pilot protocol are frozen.
+The current package contains a local mock runner and pure statistical components. The tau2 adapter remains unvalidated and is intentionally kept separate from the mock path.
 
 Planned modules:
 
 - `factorial.py`: generation and validation of factorial configurations;
-- `interaction.py`: paired difference-in-differences estimates;
-- `uncertainty.py`: task-clustered bootstrap and multiplicity handling;
-- `linkage.py`: signed graph construction and grouping;
-- `operators.py`: independent, group-wise, and compatibility-aware variation;
-- `budget.py`: shared evaluation-cost ledger.
+- `manifest.py`: module manifests, SHA-256 hashes, and provenance;
+- `contracts.py`: typed Planner/Selector/Caller/Synthesizer interfaces;
+- `mock_modules.py`: mechanism-distinct local variants for smoke tests;
+- `interaction.py`: paired difference-in-differences estimates and task-cluster bootstrap;
+- `runner.py`: local reset, trajectory, retry, failure, and cost accounting;
+- `ledger.py`: shared evaluation-cost ledger;
+- `leakage.py`: conservative static evaluator-token checks.
 
 Keep statistical estimation pure and unit-testable. Keep benchmark adapters separate from algorithm logic.

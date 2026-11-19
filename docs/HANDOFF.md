@@ -1,9 +1,9 @@
 # Executor Handoff — NIL-CCEA
 
 **Repository:** https://github.com/yujian777555/NIL-CCEA (public, default branch main).  
-**Current workstream:** Phase 0A — primary-source literature audit and benchmark/environment compatibility audit.  
+**Current workstream:** Phase 0A — source audit complete, tau2 environment selected, mock runner implemented.
 **Authoritative execution prompt:** [docs/EXECUTOR_PROMPT_PHASE0A.md](EXECUTOR_PROMPT_PHASE0A.md).  
-**Current research state:** PRE-EXPERIMENT. No benchmark experiment or performance result has been established.
+**Current research state:** PRE-EXPERIMENT. No real benchmark episode, performance result, or novelty claim has been established.
 
 ## Mission
 
@@ -11,13 +11,11 @@ Establish whether measurable, reproducible non-additive interactions exist among
 
 ## Immediate actions
 
-1. Verify the current remote HEAD and worktree; create a dedicated Phase 0A branch.
-2. Audit primary sources for the closest Agent-module evolution, interaction detection/linkage learning, noisy black-box optimization, and cooperative co-evolution work.
-3. In parallel, inspect tau-bench and other suitable tool-use environments using official source code and documentation.
-4. Verify whether the provisional Planner, Selector, Caller, and Synthesizer slots can truly be replaced independently under identical permissions and interfaces.
-5. If the four-slot design is incompatible, propose and document an evidence-backed alternative before running experiments.
-6. Define module contracts and mechanism-distinct variants only after the environment decision.
-7. Build the smallest auditable runner, validate it with mock tests, and obtain independent review before the formal factorial pilot.
+1. Implement the tau2 v1.0.1 `HalfDuplexAgent` adapter and validate four independently hashed modules under identical tools and policy.
+2. Add static leakage checks, raw-file replay, and adapter construction tests.
+3. Freeze task IDs, primary endpoint, practical threshold, Holm correction, missing-run and retry policy.
+4. Estimate paid API cost and obtain approval before any real call.
+5. Run one exploratory tau2 smoke, preserve all raw results, and review before the factorial pilot.
 
 ## Planned measurement design
 
@@ -39,10 +37,10 @@ For each module pair, estimate a paired difference-in-differences interaction co
 
 ## Acceptance gates
 
-- G0: primary-source literature audit complete and closest prior art compared.
-- G1: benchmark/task/reset/scoring/trajectory and module-replacement compatibility documented.
-- G2: module contracts, variants, primary endpoint, statistical protocol, and cost rules frozen.
-- G3: mock smoke test and automated pairing/reset/failure/cost tests pass.
+- G0: primary-source literature audit complete and closest prior art compared. PASS.
+- G1: benchmark/task/reset/scoring/trajectory and module-replacement compatibility documented. PASS at source level.
+- G2: module contracts, variants, primary endpoint, statistical protocol, and cost rules frozen. NEEDS_REVISION pending adapter and endpoint review.
+- G3: mock smoke test and automated pairing/reset/failure/cost tests pass. PASS for the local mock scope.
 - G4: formal factorial pilot run after independent review.
 - G5: fair-budget evolutionary comparison against independent and non-linkage baselines.
 

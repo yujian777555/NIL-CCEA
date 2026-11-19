@@ -1,0 +1,123 @@
+# NIL-CCEA Pilot Design R1
+
+**状态**：冻结前候选协议。没有正式 benchmark 运行，不能视为确认性预注册。
+**环境候选**：τ²-bench `v1.0.1` text-v1。
+**目标**：先验证四模块交互测量、轨迹审计和成本账本，再决定是否进入 linkage-aware cooperative evolution。
+
+## 1. 研究问题
+
+在固定 Agent backbone、工具权限、task、environment seed 和评分器条件下，Planner、Selector、Caller、Synthesizer 的二元变体是否产生可重复的非加性任务成功效应。若存在，带符号和不确定性的 linkage 是否能在等总 Agent-execution budget 下指导合作协同演化。
+
+## 2. 候选实验因素
+
+| 槽位 | 0 变体 | 1 变体 | 机制差异 |
+|---|---|---|---|
+| Planner | `planner.p0` | `planner.p1` | 线性子目标序列 vs 前置条件状态依赖图 |
+| Selector | `selector.s0` | `selector.s1` | 直接 schema 匹配 vs 前置条件门控 |
+| Caller | `caller.c0` | `caller.c1` | 直接参数抽取 vs 校验后一次修复 |
+| Synthesizer | `synthesizer.y0` | `synthesizer.y1` | 证据优先总结 vs 状态对账清单 |
+
+四槽位完整组合为 (2^4=16)。若 adapter smoke 证明某槽位不能独立替换，必须先修改模块契约和本协议，再减少到 (2^m)。
+
+## 3. 任务和配对
+
+- 正式候选任务集从 tau2 发布的 canonical task IDs 中预先抽取 12 个，建议 retail 和 airline 各 6 个。
+- 每个 task 使用 2 个固定 environment/user-simulator seed，形成 24 个 task-seed cluster。
+- 16 个配置在完全相同的 task ID、task version、language、domain、binding revision、trial 和 resolved seed 下运行。
+- 运行顺序由固定伪随机排列生成，排列种子写入 manifest。配置顺序不能根据中间结果改变。
+- 同一 task cluster 内的 episode 结果保留配对关系，不能在 bootstrap 中打散成独立样本。
+
+## 4. 终点
+
+### 主终点
+
+`task_success`，直接取 tau2 benchmark 原生 task reward。正式冻结前必须确定使用完整 reward product 还是拆分后的 DB/ENV_ASSERTION 主终点。候选主终点优先选择不依赖额外 LLM judge 的 DB 或 ENV_ASSERTION 子集。
+
+### 次要终点
+
+- tool-call schema validity；
+- tool-call count 和 execution steps；
+- constraint violation / invalid argument count；
+- agent、user simulator、judge 的 input/output token；
+- provider request cost、wall time、timeout、retry；
+- 轨迹长度和终止原因。
+
+不得在观察结果后把次要终点加权成新的主终点。
+
+## 5. 交互估计
+
+对模块对 (i,j)，在其他两个槽位配置 (z) 固定时计算
+
+\[
+I_{ij}(z)=\mu(1,1,z)-\mu(1,0,z)-\mu(0,1,z)+\mu(0,0,z).
+\]
+
+在所有其他槽位上下文上平均得到
+
+\[
+I_{ij}=\frac{1}{4}\sum_z I_{ij}(z).
+\]
+
+每个 task cluster 单独计算 contrast，再以 task cluster 为重采样单位估计 95% bootstrap interval。不能把同一 task 的两个 seed 或 16 个配置视为 32 个独立 task。
+
+### 交互状态
+
+- `POSITIVE`：区间上界和下界均在预先定义的正向实用区域之外；
+- `NEGATIVE`：区间完全落入负向实用区域；
+- `WEAK`：区间完全落入实用等价区间；
+- `UNCERTAIN`：样本不足或区间跨越实用等价区间。
+
+`UNCERTAIN` 不得折叠成 `WEAK` 或独立关系。
+
+### 多重比较
+
+四个模块共有六个 pairwise tests。正式冻结前登记 practical threshold \(\delta\) 和 Holm step-down correction。任务族估计作为预先声明的异质性分析，样本不足时只报告区间，不做显著性结论。
+
+## 6. 预算和成本
+
+规划目标仍是 12 tasks × 2 seeds × 16 configurations = 384 episodes，但这不是冻结样本量。每个 episode 需要记录所有 agent、user simulator、judge、失败调用和 retry，因此不能从 episode 数直接推导美元成本。
+
+正式 pilot 前必须完成：
+
+1. 使用 mock runner 测量每个配置的最大模块调用次数和失败路径；
+2. 用一条无结果保留的 provider dry-run 或价格表生成调用上限估算；
+3. 指定单 episode、全 pilot、失败重试和停止条件的成本上限；
+4. 得到用户对付费 API 运行的明确批准后才能启动真实 pilot。
+
+固定总 Agent-execution budget 只用于后续算法比较的公平性。交互探测、诊断、失败和重试均计入所有方法的总预算。
+
+## 7. 运行顺序
+
+1. mock adapter 与 16 配置完整性测试；
+2. pairing、reset、cache key、hash、failure/retry、ledger 和复算测试；
+3. 2 tasks × 1 seed × 16 configurations 的本地 smoke，使用纯 mock environment；
+4. 代码审查和协议修订；
+5. 仅在用户批准后运行一条真实 tau2 adapter smoke；
+6. 根据实际调用数、方差和成本冻结 12-task pilot 或调整样本量；
+7. 只有 G0—G3 通过后才启动正式 factorial pilot；
+8. 只有交互估计可靠后才实现完整 linkage-aware cooperative evolution。
+
+## 8. 失败与诊断规则
+
+某个 pair 没有明显交互时，按以下顺序检查：
+
+1. 两个变体是否产生可观察行为差异；
+2. task 是否依赖对应模块组合；
+3. reset、配对和评分是否正确；
+4. user simulator、judge、tool failure 和模型 sampling 噪声是否过大；
+5. 当前 cluster 数是否有能力识别 \(\delta\)；
+6. 是否存在 task-conditioned 或三阶交互；
+7. tau2 是否给该模块足够的干预空间。
+
+追加诊断必须使用新的 protocol version，并将结果标记为 exploratory，不能回写成确认性结果。
+
+## 9. R1 Gate 状态
+
+| Gate | 状态 | 说明 |
+|---|---|---|
+| G0 Literature | PASS | 见 `LITERATURE_AUDIT_PHASE0A.md` 和更新后的 ledger |
+| G1 Environment | PASS | tau2 v1.0.1 和模块注入 API 有源码证据 |
+| G2 Contracts/protocol | NEEDS_REVISION | 契约与统计草案已实现，需 adapter smoke 和 endpoint/δ 预冻结 |
+| G3 Smoke | NOT STARTED | mock runner 正在实现 |
+| G4 Pilot | NOT STARTED | 禁止在 G3 和成本批准前运行 |
+| G5 Search | NOT STARTED | 禁止在交互测量可靠前实现完整搜索 |
