@@ -1,48 +1,49 @@
 # Next Steps
 
-**Current task:** execute the Phase 0A handoff prompt in [docs/EXECUTOR_PROMPT_PHASE0A.md](docs/EXECUTOR_PROMPT_PHASE0A.md).
+**Current task:** execute [Phase 0B adapter and estimator corrections](docs/EXECUTOR_PROMPT_PHASE0B.md).
 
-## Completed in the current Phase 0A turn
+## Review baseline
 
-1. Created branch `phase0a-literature-environment-audit` from remote main SHA `98e202f21bb82f6df4835f48e4d1c922113719ad`.
-2. Added the primary-source literature audit and updated the literature ledger.
-3. Audited tau-bench, tau2-bench, ToolSandbox, Toolathlon, and AgentSpec. Locked tau2-bench v1.0.1 as the primary candidate and kept ToolSandbox as a diagnostic fallback.
-4. Added draft module contracts and the pre-freeze pilot design.
-5. Implemented the local mock runner, manifest/hash generation, retry/failure accounting, cost ledger, raw episode schema, and pairwise interaction estimator.
-6. Added typed mock module contracts and static leakage checks.
-7. Added the tau2 adapter entry point behind an external-dependency gate.
-8. Ran the local test suite with eleven passing tests and zero real API calls.
+- Phase 0A branch: `phase0a-literature-environment-audit`
+- Phase 0A HEAD: `6bed028a4675a75928734b633bbfae49d6b98b14`
+- PR #1: open, not merged
+- Phase 0B branch: `phase0b-adapter-statistical-corrections`
+- Review: [docs/PHASE0A_INDEPENDENT_REVIEW.md](docs/PHASE0A_INDEPENDENT_REVIEW.md)
 
-## Immediate execution order
+## Required execution order
 
-1. Run the tau2 `HalfDuplexAgent` adapter in a Python 3.12–3.13 tau2 v1.0.1 environment. The adapter entry point is implemented but unvalidated.
-2. Add adapter-side no-key construction tests that verify identical tool lists, domain policy, model version, decoding settings, and interface schemas across all 16 manifests.
-3. Add raw-file loading and derived-summary recomputation tests so every interaction estimate can be regenerated from `episodes.jsonl`.
-4. Resolve G2 by freezing the tau2 task IDs, primary endpoint, practical threshold, Holm correction, missing-run policy, retry limit, and stop budget.
-5. Produce a real API cost estimate and stop condition. Ask for approval before any paid calls.
-6. Run one real tau2 adapter smoke only after the cost gate. Preserve all raw results and mark the run exploratory.
-7. Review the smoke and then decide whether the 12-task factorial pilot is sufficiently powered and affordable.
+1. Fix tau2 Tool schema extraction using the pinned v1.0.1 `Tool.params` / `Tool.openai_schema` API.
+2. Enforce Selector → Caller consistency, schema validation, explicit failure events, and correct UserMessage/ToolMessage/MultiToolMessage handling.
+3. Persist public plan state and require real task/version/family metadata in experiment mode.
+4. Correct the interaction estimator to resample task IDs, with seeds nested inside tasks.
+5. Require complete factorial cells/contexts; reject duplicates and explicitly handle task failures versus infrastructure failures.
+6. Add tests for all corrections and pinned tau2 v1.0.1 no-key adapter integration in Python 3.12/3.13.
+7. Freeze exact task IDs, endpoint, delta, inference/Holm method, retry/missingness policy, and task-level sensitivity/power analysis.
+8. Produce provider/model-specific cost estimate and hard stop limits.
+9. Ask for explicit approval before any paid exploratory tau2 smoke.
 
 ## Research guardrails
 
-- Keep evolutionary computation and module-interaction linkage as the method core.
-- Fixed total evaluation budget is a fairness constraint, not a new budget-allocation research direction.
-- A null result for one module pair is a diagnosis trigger, not a project stop condition. Investigate manipulation validity, task-family dependence, noise, statistical power, and higher-order effects using separately versioned diagnostics.
-- Do not manufacture positive interactions or change endpoints after observing results.
-- Do not implement the complete optimizer before the interaction-measurement protocol is validated.
-- No base-model training or fine-tuning in this milestone.
-- Count every probe, failed call, retry, and diagnostic evaluation in total cost.
-- Keep NIL-CCEA separate from all other repositories.
+- Do not repeat the Phase 0A literature audit or the already-passing pure mock smoke unless a targeted regression requires it.
+- Do not merge PR #1 until blockers are corrected and independently reviewed.
+- Do not make paid API calls before explicit user approval.
+- Treat the task instance, not task × seed, as the independent statistical cluster.
+- Never silently drop incomplete factorial contexts or failed episodes.
+- Keep exploratory smoke data separate from confirmatory pilot data.
+- Do not change endpoint, delta, task IDs, or sample size after observing confirmatory results.
+- A null pairwise interaction is a diagnosis trigger, not a project stop condition.
+- Keep NIL-CCEA isolated from other repositories.
+- Do not implement the full optimizer or base-model training in this phase.
 
 ## Acceptance gates
 
-| Gate | Required evidence | State |
-|---|---|---|
-| G0 Literature | Verified primary-source bibliography and mechanism comparison | PASS |
-| G1 Environment | Source-backed benchmark and module-replacement compatibility | PASS at source level |
-| G2 Contracts/protocol | Frozen interfaces, variants, endpoint, statistics, and cost rules | NEEDS_REVISION |
-| G3 Smoke | All configurations, pairing/reset, failure and cost tests pass | PASS for mock scope |
-| G4 Pilot | Frozen factorial pilot and reproducible interaction estimates | NOT STARTED |
-| G5 Search | Fair-budget linkage-aware evolutionary comparison | NOT STARTED |
+| Gate | State |
+|---|---|
+| G0 Literature | PASS |
+| G1 Environment | PASS at source level |
+| G2 Contracts/protocol | BLOCKED pending Phase 0B corrections |
+| G3 Mock smoke | PASS for mock scope; tau2 no-key integration pending |
+| G4 Pilot | NOT STARTED |
+| G5 Search | NOT STARTED |
 
-Do not report a gate as passed without committed artifacts and reproducible evidence.
+Do not mark G2 or G3 fully passed without committed tests and reproducible evidence.

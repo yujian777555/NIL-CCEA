@@ -2,50 +2,59 @@
 
 **Last updated:** 2026-11-19  
 **Overall state:** PRE-EXPERIMENT  
-**Current workstream:** Phase 0A — audit complete at source level, mock runner implemented
-**Executor prompt:** [docs/EXECUTOR_PROMPT_PHASE0A.md](docs/EXECUTOR_PROMPT_PHASE0A.md)
+**Current workstream:** Phase 0B — adapter and estimator correctness corrections  
+**Current execution branch:** `phase0b-adapter-statistical-corrections`  
+**Phase 0A PR:** [#1](https://github.com/yujian777555/NIL-CCEA/pull/1), open and not merged  
+**Authoritative prompt:** [docs/EXECUTOR_PROMPT_PHASE0B.md](docs/EXECUTOR_PROMPT_PHASE0B.md)
 
-## Confirmed
+## Phase 0A completed
 
-- A focused research question has been defined: learn module interactions and use them to guide cooperative evolutionary search over modular LLM Agents.
-- The working algorithm label is NIL-CCEA; the v0.1 mechanism remains a hypothesis, not a validated contribution.
-- A measurement-first factorial interaction protocol has been drafted.
-- The public GitHub repository has been initialized and the initial research workspace synchronized.
-- A detailed Phase 0A executor prompt is now recorded in the repository, including source-audit requirements, environment compatibility checks, experimental guardrails, acceptance gates, and handoff rules.
-- The Phase 0A literature audit now verifies AgentSquare, EvoTool, AgentSpec, DG/DG2/RDG/RDG2, LMM, cooperative coevolution, linkage-tree methods, and 2025–2026 adjacent Agent evolution work with primary-source links and overlap risks.
-- The environment audit rejects the outdated tau-bench checkout for formal runs and pins tau2-bench v1.0.1 text-v1 as the primary candidate. ToolSandbox is retained as a local diagnostic fallback.
-- A draft four-slot module contract and pre-freeze pilot design are recorded. The contract keeps Planner, Selector, Caller, and Synthesizer behind separate interfaces and identical tool permissions.
-- A pure-local mock runner now generates all 16 configurations, immutable manifests, config hashes, task/seed pairing, retry/failure records, raw trajectories, cost ledger entries, and pairwise interaction estimates.
-- Pure-local Planner, Selector, Caller, and Synthesizer variants now share typed contracts and pass static evaluator-token leakage checks.
-- A tau2 `HalfDuplexAgent` adapter entry point now exists behind an explicit external-dependency gate. It has not been run against tau2.
-- Eleven automated tests pass on the host Python 3.10.1 interpreter. The mock run used zero real API calls.
+- Primary-source literature audit completed for the closest Agent module-evolution and linkage/cooperative co-evolution neighbors.
+- tau2-bench v1.0.1 text-v1 selected as the primary environment candidate at source-audit level; ToolSandbox retained as a diagnostic fallback.
+- Four provisional module contracts, pilot design R1, local mock runner, manifest/cost schemas, and tau2 adapter entry point added.
+- Executor-reported local test suite: 11 passed; mock run: 32 episodes; real API calls: 0.
+- No real tau2 execution, performance result, or novelty claim exists.
 
-## Not yet completed
+## Independent review findings
 
-- Live tau2 custom-agent adapter smoke. Static leakage checks are complete for local module variants.
-- Confirmation of independently replaceable module slots in a real tau2 execution.
-- Freezing the primary endpoint, practical threshold, task IDs, and cost stop rules.
-- Paid API cost estimate and user approval before any real benchmark call.
-- Formal factorial pilot and interaction analysis.
-- Any evidence that NIL-CCEA improves an evolutionary baseline.
+The read-only review is recorded in [docs/PHASE0A_INDEPENDENT_REVIEW.md](docs/PHASE0A_INDEPENDENT_REVIEW.md). It found repairable blockers:
 
-## Current decision
+1. tau2 Tool schema extraction reads attributes that do not exist in the pinned tau2 Tool class; it must use `params` or `openai_schema`.
+2. The interaction estimator treats task-seed pairs as independent clusters, contrary to the task-level clustering protocol.
+3. Incomplete factorial contexts and failed episodes can be silently omitted, changing the estimand.
+4. Adapter tool proposals are not checked against the selected tool or validated against the real parameter schema; invalid calls can silently fall through to Synthesizer.
+5. Persistent plan state is declared but not updated.
+6. No test currently instantiates the adapter against the pinned tau2 package.
+7. Required task metadata can silently remain `unknown`.
 
-G0 and source-level G1 are complete. Continue with the custom tau2 `HalfDuplexAgent` adapter and mock-to-raw recomputation checks. Do not start the formal factorial pilot or complete evolutionary optimizer until G2 and G3 are reviewed.
+These findings do not invalidate NIL-CCEA. They block G2/G3 until corrected.
 
-If one benchmark or module pair is unsuitable, diagnose and move to the next candidate or a controlled fallback. A single null interaction or benchmark incompatibility is not a project stop condition.
+## Current decisions
 
-## Next acceptance gates
+- Keep PR #1 open; do not merge until the blockers are fixed and reviewed.
+- Do not run paid API calls or formal pilot yet.
+- Continue using the exact tau2 commit pinned in `experiments/pilot_factorial/environment.lock.json`.
+- Prepare a separate Python 3.12/3.13 environment for tau2; retain the host Python 3.10 mock environment.
+- Keep evolutionary computation and interaction-linkage as the research core.
+- Do not implement the full evolutionary optimizer until interaction measurement is reliable.
 
-| Gate | Required evidence | State |
+## Gate status
+
+| Gate | State | Evidence |
 |---|---|---|
-| G0 Literature | Verified primary-source bibliography and mechanism comparison | PASS |
-| G1 Environment | Source-backed benchmark compatibility and module replacement | PASS |
-| G2 Contracts/protocol | Frozen module interfaces, variants, endpoint, statistics, and cost rules | NEEDS_REVISION |
-| G3 Smoke | Configuration, pairing/reset, failure, and cost tests pass | PASS for mock scope |
-| G4 Pilot | Frozen factorial pilot and reproducible interaction estimates | NOT STARTED |
-| G5 Search | Fair-budget comparison of linkage-aware cooperative evolution | NOT STARTED |
+| G0 Literature | PASS | Phase 0A primary-source audit |
+| G1 Environment | PASS at source level | tau2 API inspected; adapter not yet executed |
+| G2 Contracts/protocol | BLOCKED pending corrections | See independent review F0-1 through F0-7 |
+| G3 Smoke | PASS for local mock only | 11 tests reported; tau2 adapter integration not tested |
+| G4 Pilot | NOT STARTED | Zero real benchmark episodes |
+| G5 Search | NOT STARTED | No empirical linkage validation |
 
-## Evidence discipline
+## Immediate next steps
 
-No pilot data, benchmark result, statistical significance, performance gain, or novelty claim is asserted in this file. Update this status only when supported by committed artifacts and reproducible commands.
+1. Correct tool schema extraction, adapter control flow, state persistence, and task metadata.
+2. Correct task-level clustering and fail-closed missing/duplicate-cell handling in the interaction estimator.
+3. Add pinned tau2 v1.0.1 no-key integration tests in Python 3.12/3.13.
+4. Freeze endpoint, task IDs, delta, Holm inference, failure/retry policy, and task-cluster sensitivity analysis.
+5. Produce a provider/model-specific cost estimate and request explicit approval before any paid smoke.
+
+No real benchmark result, statistical significance, algorithmic improvement, or novelty claim is asserted.
