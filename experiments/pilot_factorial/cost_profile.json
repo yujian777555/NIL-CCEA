@@ -1,5 +1,5 @@
 {
-  "status": "rate_profile_requires_provider_verification",
+  "status": "price_verified_model_deprecated_choice_pending",
   "provider": "openai",
   "agent_model": "gpt-4.1-2025-04-14",
   "user_model": "gpt-4.1-2025-04-14",
@@ -13,8 +13,31 @@
     "output": 512
   },
   "declared_rate_profile_usd_per_million_tokens": {
-    "input": 2.0,
-    "output": 8.0
+    "input": 2,
+    "output": 8
+  },
+  "pricing_verification": {
+    "verified_on": "2026-11-20",
+    "pricing_basis": "OpenAI standard online API inference; upper bound does not assume prompt-cache discounts",
+    "standard_input_usd_per_million_tokens": 2,
+    "cached_input_usd_per_million_tokens": 0.5,
+    "standard_output_usd_per_million_tokens": 8,
+    "model_lifecycle": "deprecated",
+    "announced_shutdown_date": "2027-01-14",
+    "official_recommended_replacement": "gpt-6-luna",
+    "model_page": "https://developers.openai.com/api/docs/models/gpt-4.1",
+    "deprecation_page": "https://developers.openai.com/api/docs/deprecations",
+    "pricing_page": "https://developers.openai.com/api/docs/pricing"
+  },
+  "replacement_reference_not_selected": {
+    "model": "gpt-6-luna",
+    "standard_input_usd_per_million_tokens": 0.1,
+    "cached_input_usd_per_million_tokens": 0.01,
+    "standard_output_usd_per_million_tokens": 0.5,
+    "chat_completions_function_calling": "supported only with reasoning_effort=none",
+    "model_page": "https://developers.openai.com/api/docs/models/gpt-6-luna",
+    "selected_for_experiment": false,
+    "note": "Reference scenario only. Do not change the frozen model without explicit protocol revision and user approval."
   },
   "derived_upper_bounds_usd": {
     "per_episode_no_retry": 0.48576,
@@ -24,8 +47,9 @@
     "pilot_384_episodes_with_one_retry": 373.06368
   },
   "hard_caps_usd": {
-    "exploratory": 80.0,
-    "pilot": 400.0
+    "exploratory": 80,
+    "pilot": 400
   },
-  "real_api_calls_started": 0
+  "real_api_calls_started": 0,
+  "paid_smoke_approval": "NOT_GRANTED"
 }

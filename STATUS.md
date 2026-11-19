@@ -1,68 +1,60 @@
 # Project Status
 
-**Last updated:** 2026-11-20
-**Overall state:** PRE-EXPERIMENT
-**Current workstream:** Phase 0B — adapter and estimator correctness corrections
-**Current execution branch:** `phase0b-adapter-statistical-corrections`
-**Phase 0A PR:** [#1](https://github.com/yujian777555/NIL-CCEA/pull/1), open and not merged
-**Authoritative prompt:** [docs/EXECUTOR_PROMPT_PHASE0B.md](docs/EXECUTOR_PROMPT_PHASE0B.md)
+**Last updated:** 2026-11-20  
+**Overall state:** PRE-EXPERIMENT  
+**Current workstream:** Phase 0C — real-runner readiness and provider lifecycle  
+**Active branch:** `phase0b-adapter-statistical-corrections`  
+**Current HEAD:** `0031055c14ac50dec9d6436e3d35659897d02016`  
+**PR #2:** [Phase 0B corrections](https://github.com/yujian777555/NIL-CCEA/pull/2), open, not merged  
+**PR #1:** [Phase 0A audit](https://github.com/yujian777555/NIL-CCEA/pull/1), open, not merged  
+**Authoritative next prompt:** [docs/EXECUTOR_PROMPT_PHASE0C.md](docs/EXECUTOR_PROMPT_PHASE0C.md)
 
-## Phase 0A completed
+## Phase 0A / 0B completed (reported)
 
-- Primary-source literature audit completed for the closest Agent module-evolution and linkage/cooperative co-evolution neighbors.
-- tau2-bench v1.0.1 text-v1 selected as the primary environment candidate at source-audit level; ToolSandbox retained as a diagnostic fallback.
-- Four provisional module contracts, pilot design R1, local mock runner, manifest/cost schemas, and tau2 adapter entry point added.
-- Executor-reported local test suite: 11 passed; mock run: 32 episodes; real API calls: 0.
-- No real tau2 execution, performance result, or novelty claim exists.
+- Primary-source literature audit and tau2-bench v1.0.1 source audit completed.
+- Statistical estimator corrected to task-level clusters, nested seeds, complete factorial validation, explicit failure handling, task bootstrap, permutation p-values, and Holm correction.
+- tau2 adapter tested against real v1.0.1 classes and Orchestrator in a no-API Python 3.12.16 environment.
+- Executor reports 21 tau2 no-API tests passed and 0 real API calls.
+- No real benchmark episodes or performance claims exist.
 
-## Independent review findings
+## Provider pricing verification (2026-11-20)
 
-The read-only review is recorded in [docs/PHASE0A_INDEPENDENT_REVIEW.md](docs/PHASE0A_INDEPENDENT_REVIEW.md). It found repairable blockers:
+- OpenAI GPT-4.1 standard input/output rates verified at USD 2.00 / USD 8.00 per million tokens; cached input is USD 0.50.
+- Existing cost calculations are arithmetically correct and conservatively use uncached input pricing.
+- **Lifecycle issue:** `gpt-4.1-2025-04-14` is deprecated with announced shutdown 2027-01-14. OpenAI recommends `gpt-6-luna`.
+- GPT-6 Luna is recorded as an alternative reference only; no model change has been approved.
+- No paid API calls have been made.
 
-1. tau2 Tool schema extraction reads attributes that do not exist in the pinned tau2 Tool class; it must use `params` or `openai_schema`.
-2. The interaction estimator treats task-seed pairs as independent clusters, contrary to the task-level clustering protocol.
-3. Incomplete factorial contexts and failed episodes can be silently omitted, changing the estimand.
-4. Adapter tool proposals are not checked against the selected tool or validated against the real parameter schema; invalid calls can silently fall through to Synthesizer.
-5. Persistent plan state is declared but not updated.
-6. No test currently instantiates the adapter against the pinned tau2 package.
-7. Required task metadata can silently remain `unknown`.
+## Additional pre-smoke review findings
 
-These findings do not invalidate NIL-CCEA. They block G2/G3 until corrected.
+1. `tau2_adapter.py` invokes Caller before checking whether Selector chose `tool_call`; move Caller invocation inside that branch and test respond/stop.
+2. No provider-backed Planner/Selector/Caller/Synthesizer or real tau2 factorial runner exists yet; current modules and runner are deterministic mock implementations.
+3. The intended `practical_delta=0.05` conflicts with a sensitivity table calculated for `delta=0.10`.
+4. An older protocol still lists a 32-episode smoke; the current candidate is 64 episodes.
+5. `src/nil_ccea/README.md` has stale adapter-validation wording.
+6. PR #2 head currently has zero GitHub status checks/check runs; the reported tests are local executor evidence.
 
-## Phase 0B corrections completed
-
-- The estimator now treats task as the independent cluster, with seeds `0` and `1` nested within task.
-- Full 16-configuration and four-context completeness, duplicate rejection, and explicit task/infrastructure failure handling are enforced.
-- Task-level bootstrap, permutation p-values, six-pair Holm correction, and regression tests are implemented.
-- The tau2 adapter now uses real `Tool.openai_schema` and `Tool.params`, validates selector/caller consistency and arguments, handles `ToolMessage` and `MultiToolMessage`, persists `plan_state`, injects task metadata, and records the orchestrator seed.
-- Real tau2 v1.0.1 classes and Orchestrator pass 21 no-API tests in Python 3.12.16. The LiteLLM test stub raises on any completion call.
-- The frozen candidate protocol is recorded in `docs/PHASE0B_PROTOCOL_FREEZE.md`. Provider pricing remains to be verified before any paid call.
-
-## Current decisions
-
-- Keep PR #1 open; do not merge until the blockers are fixed and reviewed.
-- Do not run paid API calls or formal pilot yet.
-- Continue using the exact tau2 commit pinned in `experiments/pilot_factorial/environment.lock.json`.
-- Prepare a separate Python 3.12/3.13 environment for tau2; retain the host Python 3.10 mock environment.
-- Keep evolutionary computation and interaction-linkage as the research core.
-- Do not implement the full evolutionary optimizer until interaction measurement is reliable.
+Full review: [docs/PHASE0B1_PRICING_AND_SMOKE_READINESS_REVIEW.md](docs/PHASE0B1_PRICING_AND_SMOKE_READINESS_REVIEW.md).
 
 ## Gate status
 
 | Gate | State | Evidence |
 |---|---|---|
 | G0 Literature | PASS | Phase 0A primary-source audit |
-| G1 Environment | PASS | tau2 API and real no-API adapter execution |
-| G2 Contracts/protocol | NEEDS_REVISION | Frozen candidate exists, provider price verification remains |
-| G3 Smoke | PASS for no-API scope | 21 tests pass on host and tau2 Python 3.12 environments |
-| G4 Pilot | NOT STARTED | Zero real benchmark episodes |
-| G5 Search | NOT STARTED | No empirical linkage validation |
+| G1 Environment | PASS | Pinned tau2 source and no-API class/Orchestrator tests reported |
+| G2 Contracts/protocol | NEEDS_REVISION | Model lifecycle, delta/power consistency, adapter control flow |
+| G3 No-API integration | PASS for tested scope | 21 tau2 no-API tests reported; new Caller branch test pending |
+| G3 Real-runner readiness | BLOCKED | Provider-backed modules and real tau2 factorial runner absent |
+| G4 Paid exploratory smoke | NOT STARTED | Requires code readiness and explicit user approval |
+| G5 Search | NOT STARTED | No real interaction data |
 
 ## Immediate next steps
 
-1. Verify provider pricing against the declared cost profile.
-2. Request explicit approval before paid exploratory smoke.
-3. Run 2 tasks × 2 seeds × 16 configurations and preserve all raw outputs.
-4. Reassess task-level variance and the sensitivity table before formal pilot approval.
+1. Fix Caller invocation semantics and add regression tests.
+2. Implement provider-backed module wrappers and a real tau2 factorial runner, using fake clients for all no-key tests.
+3. Resolve model lifecycle choice before any paid call; never mix models.
+4. Reconcile `delta=0.05` with the power/sensitivity analysis.
+5. Align superseded protocol/README docs and establish CI evidence.
+6. After independent review, ask for explicit approval before the 64-episode paid exploratory smoke.
 
-No real benchmark result, statistical significance, algorithmic improvement, or novelty claim is asserted.
+No benchmark performance, statistical significance, algorithmic improvement, or novelty claim is asserted.

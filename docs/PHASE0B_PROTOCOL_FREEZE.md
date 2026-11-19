@@ -92,3 +92,27 @@
 - Agent task failure 计为 primary endpoint 0，并保留完整轨迹。
 - Infrastructure failure 保留原始错误、retry、request metadata 和 partial trajectory。retry 后仍失败时，confirmation run 标记 `INCOMPLETE_FACTORIAL`，不计算交互显著性。
 - 所有 task-level contrasts、seed-level contrasts、context-level cells 和 Holm 调整结果均可从 `episodes.jsonl` 复算。
+
+## 8. Provider pricing verification and lifecycle (2026-11-20)
+
+The active provider price profile has been checked against the official OpenAI GPT-4.1 model page:
+- Standard input: USD 2.00 / 1M tokens
+- Cached input: USD 0.50 / 1M tokens
+- Standard output: USD 8.00 / 1M tokens
+
+The budget upper bound intentionally uses uncached input pricing. The arithmetic in `experiments/pilot_factorial/cost_profile.json` is unchanged and verified.
+
+**Lifecycle warning:** `gpt-4.1-2025-04-14` is marked Deprecated. OpenAI lists 2027-01-14 as its shutdown date and recommends `gpt-6-luna`. The model decision is unresolved; do not silently switch models and do not make a paid request until the user explicitly chooses. Do not mix model versions within a factorial dataset.
+
+Official sources:
+- https://developers.openai.com/api/docs/models/gpt-4.1
+- https://developers.openai.com/api/docs/deprecations
+- https://developers.openai.com/api/docs/models/gpt-6-luna
+
+## 9. Remaining pre-smoke consistency checks
+
+- The intended practical-delta candidate is `0.05` (matching the estimator default and Phase 0B completion report). The sensitivity table in Section 5 is explicitly calculated for `delta=0.10`; it does not establish precision/power for `delta=0.05`. Recompute the table before the confirmatory pilot.
+- The 64-episode exploratory smoke (2 tasks × 2 seeds × 16 configurations) supersedes the earlier 32-episode row in `docs/EXPERIMENT_PROTOCOL_PILOT.md`.
+- The current adapter still calls Caller before branching on `selection.kind`; Phase 0C must ensure Caller is invoked only for `tool_call`.
+- Current no-API tests establish tau2 class/Orchestrator compatibility, not a paid-run implementation. Provider-backed module classes and a real tau2 factorial runner are still required.
+

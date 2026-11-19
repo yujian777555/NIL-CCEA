@@ -71,3 +71,16 @@
 - Corrected the tau2 adapter against real v1.0.1 classes. Tool schemas now come from `openai_schema`, arguments are validated through `params`, Selector/Caller mismatches fail closed, tool and multi-tool messages update public state, metadata and seed are injected, and invalid calls raise typed errors.
 - Added real tau2 no-API tests for 16 permission-invariant configurations, schema validation, multi-turn tool execution, state recovery, manifest metadata, and Orchestrator trajectories.
 - No paid API calls were made. Exploratory and formal cost caps are recorded in `docs/PHASE0B_PROTOCOL_FREEZE.md` and `experiments/pilot_factorial/cost_profile.json`.
+
+## 2026-11-20 — Phase 0B.1 pricing and smoke-readiness review
+
+- Verified OpenAI GPT-4.1 standard rates from the official model page: $2/M input, $0.50/M cached input, $8/M output. The active cost profile uses uncached input pricing and its upper-bound arithmetic is correct.
+- Confirmed `gpt-4.1-2025-04-14` is deprecated with announced shutdown date 2027-01-14; OpenAI lists `gpt-6-luna` as the recommended replacement. No model switch was made.
+- Recorded a reference-only GPT-6 Luna standard rate of $0.10/M input and $0.50/M output; Chat Completions function calling requires `reasoning_effort=none`.
+- Identified residual adapter control-flow issue: Caller is invoked before the action-kind branch, including respond/stop decisions.
+- Confirmed provider-backed module implementations and a real tau2 factorial runner are absent; the current runner/modules remain mock-only.
+- Identified practical-delta mismatch: code default/candidate is 0.05, while the protocol sensitivity table is for 0.10.
+- Marked the old 32-episode smoke planning row as superseded by the current 64-episode candidate.
+- PR #2 remains open and unmerged. GitHub reports zero status checks/check runs for its current head. No paid API calls were made.
+- Added Phase 0C handoff requirements. G2 remains NEEDS_REVISION; real-runner readiness is BLOCKED; G4 remains NOT STARTED.
+
