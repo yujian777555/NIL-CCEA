@@ -5,7 +5,15 @@
     "release": "v1.0.1",
     "commit": "fc0055dc4e0a316c3f83133267fbd6faaa770992",
     "mode": "text-v1",
-    "status": "source-audited-not-executed"
+    "status": "source-audited-no-api-adapter-validated",
+    "task_ids": {
+      "retail": [5, 9, 12, 17, 18, 26],
+      "airline": [2, 6, 8, 13, 16, 18]
+    },
+    "task_split": "test",
+    "seeds": [0, 1],
+    "primary_endpoint": "environment_reward",
+    "evaluation_type": "ENV"
   },
   "runner": {
     "package": "nil-ccea",

@@ -1,8 +1,8 @@
 # Executor Handoff — NIL-CCEA
 
-**Repository:** https://github.com/yujian777555/NIL-CCEA (public, default branch main).  
-**Current workstream:** Phase 0A — source audit complete, tau2 environment selected, mock runner implemented.
-**Authoritative execution prompt:** [docs/EXECUTOR_PROMPT_PHASE0A.md](EXECUTOR_PROMPT_PHASE0A.md).  
+**Repository:** https://github.com/yujian777555/NIL-CCEA (public, default branch main).
+**Current workstream:** Phase 0B — statistical correction, tau2 adapter validation, and protocol freeze.
+**Authoritative execution prompt:** [docs/EXECUTOR_PROMPT_PHASE0A.md](EXECUTOR_PROMPT_PHASE0A.md).
 **Current research state:** PRE-EXPERIMENT. No real benchmark episode, performance result, or novelty claim has been established.
 
 ## Mission
@@ -11,17 +11,17 @@ Establish whether measurable, reproducible non-additive interactions exist among
 
 ## Immediate actions
 
-1. Run the implemented tau2 v1.0.1 `HalfDuplexAgent` adapter in a Python 3.12–3.13 tau2 environment and validate four independently hashed modules under identical tools and policy.
-2. Complete adapter-side no-key construction checks and raw-file replay checks.
-3. Freeze task IDs, primary endpoint, practical threshold, Holm correction, missing-run and retry policy.
-4. Estimate paid API cost and obtain approval before any real call.
-5. Run one exploratory tau2 smoke, preserve all raw results, and review before the factorial pilot.
+1. Run the tau2 v1.0.1 `HalfDuplexAgent` adapter tests in the independent Python 3.12 environment.
+2. Review the task-level estimator and six-pair Holm output.
+3. Review `docs/PHASE0B_PROTOCOL_FREEZE.md` and update only if a source-backed correction is required.
+4. Estimate and verify provider pricing before any real call.
+5. Obtain approval, then run the controlled 2-task exploratory smoke.
 
 ## Planned measurement design
 
-The provisional design uses four binary module slots (2^4 = 16 configurations) and paired task/environment-seed evaluations. The existing target of 12 tasks × 2 seeds × 16 configurations = 384 episodes is a planning value, not an observed result or an immutable requirement. Reassess cost and statistical sensitivity before protocol freeze.
+The corrected candidate uses four binary module slots (2^4 = 16 configurations), 12 fixed tasks, and two repeated seeds per task. The target is 12 tasks × 2 seeds × 16 configurations = 384 episodes. The independent statistical cluster is task, not task-seed.
 
-For each module pair, estimate a paired difference-in-differences interaction contrast averaged over the contexts of the other module slots. Use task-clustered uncertainty, pre-specified practical effect threshold and multiplicity handling. Do not interpret uncertain edges as independence.
+For each module pair, estimate a paired difference-in-differences interaction contrast across four contexts, average the two seeds within task, then use task-level bootstrap and Holm correction. Do not interpret uncertain edges as independence.
 
 ## Required controls
 
@@ -39,8 +39,8 @@ For each module pair, estimate a paired difference-in-differences interaction co
 
 - G0: primary-source literature audit complete and closest prior art compared. PASS.
 - G1: benchmark/task/reset/scoring/trajectory and module-replacement compatibility documented. PASS at source level.
-- G2: module contracts, variants, primary endpoint, statistical protocol, and cost rules frozen. NEEDS_REVISION pending adapter and endpoint review.
-- G3: mock smoke test and automated pairing/reset/failure/cost tests pass. PASS for the local mock scope.
+- G2: module contracts, variants, primary endpoint, statistical protocol, and cost rules frozen. NEEDS_REVISION pending price verification and review.
+- G3: mock and tau2-class no-API smoke tests pass. PASS for no-API scope.
 - G4: formal factorial pilot run after independent review.
 - G5: fair-budget evolutionary comparison against independent and non-linkage baselines.
 

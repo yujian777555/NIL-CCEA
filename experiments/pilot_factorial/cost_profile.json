@@ -1,0 +1,31 @@
+{
+  "status": "rate_profile_requires_provider_verification",
+  "provider": "openai",
+  "agent_model": "gpt-4.1-2025-04-14",
+  "user_model": "gpt-4.1-2025-04-14",
+  "primary_evaluator": "ENV",
+  "max_steps_per_episode": 30,
+  "max_agent_requests_per_episode": 30,
+  "max_user_requests_per_episode": 30,
+  "max_infrastructure_retries_per_request": 1,
+  "token_cap_per_request": {
+    "input": 2000,
+    "output": 512
+  },
+  "declared_rate_profile_usd_per_million_tokens": {
+    "input": 2.0,
+    "output": 8.0
+  },
+  "derived_upper_bounds_usd": {
+    "per_episode_no_retry": 0.48576,
+    "exploratory_64_episodes_no_retry": 31.08864,
+    "exploratory_64_episodes_with_one_retry": 62.17728,
+    "pilot_384_episodes_no_retry": 186.53184,
+    "pilot_384_episodes_with_one_retry": 373.06368
+  },
+  "hard_caps_usd": {
+    "exploratory": 80.0,
+    "pilot": 400.0
+  },
+  "real_api_calls_started": 0
+}

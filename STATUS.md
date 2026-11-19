@@ -1,8 +1,8 @@
 # Project Status
 
-**Last updated:** 2026-11-19  
-**Overall state:** PRE-EXPERIMENT  
-**Current workstream:** Phase 0A — audit complete at source level, mock runner implemented
+**Last updated:** 2026-11-20
+**Overall state:** PRE-EXPERIMENT
+**Current workstream:** Phase 0B — statistical correction, tau2 adapter validation, and protocol freeze
 **Executor prompt:** [docs/EXECUTOR_PROMPT_PHASE0A.md](docs/EXECUTOR_PROMPT_PHASE0A.md)
 
 ## Confirmed
@@ -17,21 +17,21 @@
 - A draft four-slot module contract and pre-freeze pilot design are recorded. The contract keeps Planner, Selector, Caller, and Synthesizer behind separate interfaces and identical tool permissions.
 - A pure-local mock runner now generates all 16 configurations, immutable manifests, config hashes, task/seed pairing, retry/failure records, raw trajectories, cost ledger entries, and pairwise interaction estimates.
 - Pure-local Planner, Selector, Caller, and Synthesizer variants now share typed contracts and pass static evaluator-token leakage checks.
-- A tau2 `HalfDuplexAgent` adapter entry point now exists behind an explicit external-dependency gate. It has not been run against tau2.
-- Eleven automated tests pass on the host Python 3.10.1 interpreter. The mock run used zero real API calls.
+- The tau2 `HalfDuplexAgent` adapter now reads real `Tool.openai_schema` and `Tool.params`, validates Selector/Caller consistency, handles ToolMessage/MultiToolMessage, persists plan_state, and requires task metadata.
+- Real tau2 v1.0.1 Tool, Environment, HalfDuplexAgent, and Orchestrator classes pass all 21 no-API tests in Python 3.12.16 with a local LiteLLM stub that raises on any completion call.
+- The corrected estimator uses task-level clusters, two repeated seeds, complete 16 configurations, four contexts, explicit failure semantics, and six-pair Holm correction.
 
 ## Not yet completed
 
-- Live tau2 custom-agent adapter smoke. Static leakage checks are complete for local module variants.
-- Confirmation of independently replaceable module slots in a real tau2 execution.
-- Freezing the primary endpoint, practical threshold, task IDs, and cost stop rules.
-- Paid API cost estimate and user approval before any real benchmark call.
+- Provider price verification and user approval before any real benchmark call.
+- Controlled 2-task × 2-seed × 16-configuration exploratory smoke.
+- Confirmation-level variance and power review after exploratory smoke.
 - Formal factorial pilot and interaction analysis.
 - Any evidence that NIL-CCEA improves an evolutionary baseline.
 
 ## Current decision
 
-G0 and source-level G1 are complete. Continue with the custom tau2 `HalfDuplexAgent` adapter and mock-to-raw recomputation checks. Do not start the formal factorial pilot or complete evolutionary optimizer until G2 and G3 are reviewed.
+G0, G1, and no-API G3 evidence are complete. G2 remains under review until provider pricing is verified. Do not start paid smoke or the formal factorial pilot without explicit approval.
 
 If one benchmark or module pair is unsuitable, diagnose and move to the next candidate or a controlled fallback. A single null interaction or benchmark incompatibility is not a project stop condition.
 
@@ -41,8 +41,8 @@ If one benchmark or module pair is unsuitable, diagnose and move to the next can
 |---|---|---|
 | G0 Literature | Verified primary-source bibliography and mechanism comparison | PASS |
 | G1 Environment | Source-backed benchmark compatibility and module replacement | PASS |
-| G2 Contracts/protocol | Frozen module interfaces, variants, endpoint, statistics, and cost rules | NEEDS_REVISION |
-| G3 Smoke | Configuration, pairing/reset, failure, and cost tests pass | PASS for mock scope |
+| G2 Contracts/protocol | Frozen module interfaces, variants, endpoint, statistics, and cost rules | NEEDS_REVISION pending price verification |
+| G3 Smoke | Configuration, pairing/reset, failure, and cost tests pass | PASS for mock and tau2 no-API scope |
 | G4 Pilot | Frozen factorial pilot and reproducible interaction estimates | NOT STARTED |
 | G5 Search | Fair-budget comparison of linkage-aware cooperative evolution | NOT STARTED |
 

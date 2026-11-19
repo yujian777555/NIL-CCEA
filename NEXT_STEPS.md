@@ -1,8 +1,8 @@
 # Next Steps
 
-**Current task:** execute the Phase 0A handoff prompt in [docs/EXECUTOR_PROMPT_PHASE0A.md](docs/EXECUTOR_PROMPT_PHASE0A.md).
+**Current task:** execute Phase 0B statistical correction, tau2 adapter validation, and protocol freeze.
 
-## Completed in the current Phase 0A turn
+## Completed in Phase 0A and the current Phase 0B turn
 
 1. Created branch `phase0a-literature-environment-audit` from remote main SHA `98e202f21bb82f6df4835f48e4d1c922113719ad`.
 2. Added the primary-source literature audit and updated the literature ledger.
@@ -11,17 +11,17 @@
 5. Implemented the local mock runner, manifest/hash generation, retry/failure accounting, cost ledger, raw episode schema, and pairwise interaction estimator.
 6. Added typed mock module contracts and static leakage checks.
 7. Added the tau2 adapter entry point behind an external-dependency gate.
-8. Ran the local test suite with eleven passing tests and zero real API calls.
+8. Ran the local test suite with twenty-one passing tests and zero real API calls. The Python 3.12 tau2 run also passed all twenty-one.
+9. Corrected task-level statistical clustering, six-pair Holm adjustment, failure semantics, and tau2 Tool schema handling.
+10. Ran real tau2 v1.0.1 classes and Orchestrator with local modules and zero API calls in the independent Python 3.12.16 environment.
 
 ## Immediate execution order
 
-1. Run the tau2 `HalfDuplexAgent` adapter in a Python 3.12–3.13 tau2 v1.0.1 environment. The adapter entry point is implemented but unvalidated.
-2. Add adapter-side no-key construction tests that verify identical tool lists, domain policy, model version, decoding settings, and interface schemas across all 16 manifests.
-3. Add raw-file loading and derived-summary recomputation tests so every interaction estimate can be regenerated from `episodes.jsonl`.
-4. Resolve G2 by freezing the tau2 task IDs, primary endpoint, practical threshold, Holm correction, missing-run policy, retry limit, and stop budget.
-5. Produce a real API cost estimate and stop condition. Ask for approval before any paid calls.
-6. Run one real tau2 adapter smoke only after the cost gate. Preserve all raw results and mark the run exploratory.
-7. Review the smoke and then decide whether the 12-task factorial pilot is sufficiently powered and affordable.
+1. Review provider pricing and update the declared cost profile before any paid call.
+2. Run the 2-task × 2-seed × 16-configuration exploratory smoke only after explicit user approval.
+3. Preserve all raw trajectories and manifests. Mark the smoke exploratory.
+4. Reassess task-level variance and the power sensitivity table before formal pilot approval.
+5. Do not implement the full evolutionary optimizer until the corrected interaction estimates are reviewable.
 
 ## Research guardrails
 
@@ -40,8 +40,8 @@
 |---|---|---|
 | G0 Literature | Verified primary-source bibliography and mechanism comparison | PASS |
 | G1 Environment | Source-backed benchmark and module-replacement compatibility | PASS at source level |
-| G2 Contracts/protocol | Frozen interfaces, variants, endpoint, statistics, and cost rules | NEEDS_REVISION |
-| G3 Smoke | All configurations, pairing/reset, failure and cost tests pass | PASS for mock scope |
+| G2 Contracts/protocol | Frozen interfaces, variants, endpoint, statistics, and cost rules | NEEDS_REVISION pending price verification |
+| G3 Smoke | All configurations, pairing/reset, failure and cost tests pass | PASS for mock and tau2 no-API scope |
 | G4 Pilot | Frozen factorial pilot and reproducible interaction estimates | NOT STARTED |
 | G5 Search | Fair-budget linkage-aware evolutionary comparison | NOT STARTED |
 

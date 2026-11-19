@@ -1,6 +1,6 @@
 # Pilot Experiment Protocol: 2^4 Module Factorial
 
-**State:** planned protocol; no runs have been executed.
+**State:** Phase 0B corrected protocol candidate; no real runs have been executed.
 
 ## 1. Purpose
 
@@ -57,7 +57,7 @@ These are planning targets, not observed results. A power/sensitivity analysis a
 
 ## 6. Outcomes
 
-Choose one benchmark-native primary endpoint before running. Candidate: task success (binary). Secondary outcomes may include tool-call validity, constraint violations, token/API cost, latency, and execution steps.
+The frozen candidate primary endpoint is tau2 `EvaluationType.ENV` environment reward, covering DB and environment assertions. Full task reward, communication, and NL assertion results are secondary diagnostics. Secondary outcomes may include tool-call validity, constraint violations, token/API cost, latency, and execution steps.
 
 Do not create a post-hoc weighted score to favor a method. If optimization requires a scalar utility, define it and its constraints before confirmatory runs.
 
@@ -72,7 +72,7 @@ For each module pair, estimate the difference-in-differences contrast averaged o
 - multiplicity correction across module-pair tests;
 - sensitivity to missing runs, retries, and task composition.
 
-The preferred uncertainty method is a bootstrap that resamples task instances as clusters and retains within-task paired configurations. A hierarchical model may be added as a sensitivity analysis, not substituted after seeing which method gives a preferred result.
+The preferred uncertainty method is a bootstrap that resamples the 12 task instances as clusters. The two seeds remain repeated measurements within each task. A hierarchical model may be added as a sensitivity analysis, not substituted after seeing which method gives a preferred result.
 
 ## 8. Fair-budget rule for the later search comparison
 

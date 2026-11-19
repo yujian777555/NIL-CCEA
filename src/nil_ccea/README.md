@@ -8,7 +8,7 @@ Planned modules:
 - `manifest.py`: module manifests, SHA-256 hashes, and provenance;
 - `contracts.py`: typed Planner/Selector/Caller/Synthesizer interfaces;
 - `mock_modules.py`: mechanism-distinct local variants for smoke tests;
-- `interaction.py`: paired difference-in-differences estimates and task-cluster bootstrap;
+- `interaction.py`: task-level paired difference-in-differences, repeated-seed aggregation, bootstrap, and Holm correction;
 - `runner.py`: local reset, trajectory, retry, failure, and cost accounting;
 - `ledger.py`: shared evaluation-cost ledger;
 - `leakage.py`: conservative static evaluator-token checks.
