@@ -49,15 +49,25 @@
 - Added configuration, episode, cost ledger, and environment lock schemas under `experiments/pilot_factorial/`.
 - Added typed module contracts, eight pure-local mechanism variants, and static evaluator-token leakage checks.
 - Added a tau2 `HalfDuplexAgent` adapter entry point with an explicit external-dependency gate. It is implemented but unvalidated against tau2.
-- Ran the local suite with nineteen passing tests on host Python 3.10.1. The mock run generated 32 episodes and made zero real API calls. The synthetic positive interaction is a runner validation signal only and is not a research result.
+- Ran the local suite with eleven passing tests on host Python 3.10.1. The mock run generated 32 episodes and made zero real API calls. The synthetic positive interaction is a runner validation signal only and is not a research result.
 - G0 is PASS, source-level G1 is PASS, G2 is NEEDS_REVISION until the tau2 adapter and endpoint freeze are reviewed, and G3 is PASS for the mock scope.
 
-## 2026-11-20 — Phase 0B statistical and adapter corrections
 
-- Created branch `phase0b-adapter-statistical-corrections` from the Phase 0A branch.
-- Corrected interaction estimation so the independent cluster is `task`. Seed `0` and seed `1` are repeated measurements within task. Full task-level validation now requires two seeds, unique complete 16 configurations per seed, four contexts per pair, and no infrastructure failures.
-- Added explicit `success`, `agent_failed`, and `infra_failed` semantics. Agent failures contribute a valid primary score of zero. Infrastructure failures are retained and reject confirmation-level interaction estimation after retry exhaustion.
-- Added task-level bootstrap, permutation p-values, six-pair Holm correction, duplicate configuration rejection, and regression tests.
-- Reworked the tau2 adapter to use `Tool.openai_schema` and `Tool.params`, validate Selector/Caller consistency and arguments, process `ToolMessage` and `MultiToolMessage`, persist `plan_state`, and require task metadata injection.
-- Created an independent Python 3.12.16 environment and checked out tau2-bench v1.0.1 at `fc0055dc4e0a316c3f83133267fbd6faaa770992`. Real tau2 Tool, message, HalfDuplexAgent, Environment, and Orchestrator classes passed 21 no-API tests using a local LiteLLM stub that raises on any completion call.
-- Added `docs/PHASE0B_PROTOCOL_FREEZE.md`. The frozen candidate uses 12 task clusters, `ENV` as primary endpoint, seeds `0` and `1`, `delta=0.05`, Holm alpha `0.05`, max_steps `30`, one infrastructure retry, and explicit exploratory/formal cost caps.
+## 2026-11-19 — Independent review of Phase 0A implementation
+
+- Read-only review of PR #1 and the pinned tau2-bench v1.0.1 source completed.
+- Confirmed that tau2 v1.0.1 requires Python `>=3.12,<3.14`, its `Tool` exposes `params` and `openai_schema`, and its half-duplex agent receives user/tool/multi-tool messages.
+- Identified adapter schema extraction mismatch: current code reads `parameters` / `schema`, so real tool parameter schemas can be empty.
+- Identified statistical unit mismatch: current estimator bootstraps `(task_id, seed)` although the protocol requires task-level clusters and nested seeds.
+- Identified incomplete-cell handling that can average only available contexts after filtering failures, potentially changing the estimand.
+- Identified missing Selector-to-Caller consistency checks, missing real schema validation, unpersisted plan state, unknown task metadata defaults, and absence of pinned tau2 integration tests.
+- PR #1 remains open and unmerged. GitHub reports no status checks and no reviews on the reviewed SHA; the 11-test result remains executor-reported local evidence.
+- Created Phase 0B review and executor prompt. This is a code-review/handoff milestone only; no code correction, tau2 execution, paid API call, or benchmark experiment is claimed.
+
+## 2026-11-20 — Phase 0B corrections completed
+
+- Merged the remote Phase 0B review baseline without overwriting its independent review or executor prompt.
+- Corrected the estimator to task-level clusters with two nested seeds, complete 16 configurations, four contexts, duplicate rejection, explicit failure semantics, task-level bootstrap, permutation p-values, and Holm step-down for six pairs.
+- Corrected the tau2 adapter against real v1.0.1 classes. Tool schemas now come from `openai_schema`, arguments are validated through `params`, Selector/Caller mismatches fail closed, tool and multi-tool messages update public state, metadata and seed are injected, and invalid calls raise typed errors.
+- Added real tau2 no-API tests for 16 permission-invariant configurations, schema validation, multi-turn tool execution, state recovery, manifest metadata, and Orchestrator trajectories.
+- No paid API calls were made. Exploratory and formal cost caps are recorded in `docs/PHASE0B_PROTOCOL_FREEZE.md` and `experiments/pilot_factorial/cost_profile.json`.

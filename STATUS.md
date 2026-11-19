@@ -2,50 +2,67 @@
 
 **Last updated:** 2026-11-20
 **Overall state:** PRE-EXPERIMENT
-**Current workstream:** Phase 0B — statistical correction, tau2 adapter validation, and protocol freeze
-**Executor prompt:** [docs/EXECUTOR_PROMPT_PHASE0A.md](docs/EXECUTOR_PROMPT_PHASE0A.md)
+**Current workstream:** Phase 0B — adapter and estimator correctness corrections
+**Current execution branch:** `phase0b-adapter-statistical-corrections`
+**Phase 0A PR:** [#1](https://github.com/yujian777555/NIL-CCEA/pull/1), open and not merged
+**Authoritative prompt:** [docs/EXECUTOR_PROMPT_PHASE0B.md](docs/EXECUTOR_PROMPT_PHASE0B.md)
 
-## Confirmed
+## Phase 0A completed
 
-- A focused research question has been defined: learn module interactions and use them to guide cooperative evolutionary search over modular LLM Agents.
-- The working algorithm label is NIL-CCEA; the v0.1 mechanism remains a hypothesis, not a validated contribution.
-- A measurement-first factorial interaction protocol has been drafted.
-- The public GitHub repository has been initialized and the initial research workspace synchronized.
-- A detailed Phase 0A executor prompt is now recorded in the repository, including source-audit requirements, environment compatibility checks, experimental guardrails, acceptance gates, and handoff rules.
-- The Phase 0A literature audit now verifies AgentSquare, EvoTool, AgentSpec, DG/DG2/RDG/RDG2, LMM, cooperative coevolution, linkage-tree methods, and 2025–2026 adjacent Agent evolution work with primary-source links and overlap risks.
-- The environment audit rejects the outdated tau-bench checkout for formal runs and pins tau2-bench v1.0.1 text-v1 as the primary candidate. ToolSandbox is retained as a local diagnostic fallback.
-- A draft four-slot module contract and pre-freeze pilot design are recorded. The contract keeps Planner, Selector, Caller, and Synthesizer behind separate interfaces and identical tool permissions.
-- A pure-local mock runner now generates all 16 configurations, immutable manifests, config hashes, task/seed pairing, retry/failure records, raw trajectories, cost ledger entries, and pairwise interaction estimates.
-- Pure-local Planner, Selector, Caller, and Synthesizer variants now share typed contracts and pass static evaluator-token leakage checks.
-- The tau2 `HalfDuplexAgent` adapter now reads real `Tool.openai_schema` and `Tool.params`, validates Selector/Caller consistency, handles ToolMessage/MultiToolMessage, persists plan_state, and requires task metadata.
-- Real tau2 v1.0.1 Tool, Environment, HalfDuplexAgent, and Orchestrator classes pass all 21 no-API tests in Python 3.12.16 with a local LiteLLM stub that raises on any completion call.
-- The corrected estimator uses task-level clusters, two repeated seeds, complete 16 configurations, four contexts, explicit failure semantics, and six-pair Holm correction.
+- Primary-source literature audit completed for the closest Agent module-evolution and linkage/cooperative co-evolution neighbors.
+- tau2-bench v1.0.1 text-v1 selected as the primary environment candidate at source-audit level; ToolSandbox retained as a diagnostic fallback.
+- Four provisional module contracts, pilot design R1, local mock runner, manifest/cost schemas, and tau2 adapter entry point added.
+- Executor-reported local test suite: 11 passed; mock run: 32 episodes; real API calls: 0.
+- No real tau2 execution, performance result, or novelty claim exists.
 
-## Not yet completed
+## Independent review findings
 
-- Provider price verification and user approval before any real benchmark call.
-- Controlled 2-task × 2-seed × 16-configuration exploratory smoke.
-- Confirmation-level variance and power review after exploratory smoke.
-- Formal factorial pilot and interaction analysis.
-- Any evidence that NIL-CCEA improves an evolutionary baseline.
+The read-only review is recorded in [docs/PHASE0A_INDEPENDENT_REVIEW.md](docs/PHASE0A_INDEPENDENT_REVIEW.md). It found repairable blockers:
 
-## Current decision
+1. tau2 Tool schema extraction reads attributes that do not exist in the pinned tau2 Tool class; it must use `params` or `openai_schema`.
+2. The interaction estimator treats task-seed pairs as independent clusters, contrary to the task-level clustering protocol.
+3. Incomplete factorial contexts and failed episodes can be silently omitted, changing the estimand.
+4. Adapter tool proposals are not checked against the selected tool or validated against the real parameter schema; invalid calls can silently fall through to Synthesizer.
+5. Persistent plan state is declared but not updated.
+6. No test currently instantiates the adapter against the pinned tau2 package.
+7. Required task metadata can silently remain `unknown`.
 
-G0, G1, and no-API G3 evidence are complete. G2 remains under review until provider pricing is verified. Do not start paid smoke or the formal factorial pilot without explicit approval.
+These findings do not invalidate NIL-CCEA. They block G2/G3 until corrected.
 
-If one benchmark or module pair is unsuitable, diagnose and move to the next candidate or a controlled fallback. A single null interaction or benchmark incompatibility is not a project stop condition.
+## Phase 0B corrections completed
 
-## Next acceptance gates
+- The estimator now treats task as the independent cluster, with seeds `0` and `1` nested within task.
+- Full 16-configuration and four-context completeness, duplicate rejection, and explicit task/infrastructure failure handling are enforced.
+- Task-level bootstrap, permutation p-values, six-pair Holm correction, and regression tests are implemented.
+- The tau2 adapter now uses real `Tool.openai_schema` and `Tool.params`, validates selector/caller consistency and arguments, handles `ToolMessage` and `MultiToolMessage`, persists `plan_state`, injects task metadata, and records the orchestrator seed.
+- Real tau2 v1.0.1 classes and Orchestrator pass 21 no-API tests in Python 3.12.16. The LiteLLM test stub raises on any completion call.
+- The frozen candidate protocol is recorded in `docs/PHASE0B_PROTOCOL_FREEZE.md`. Provider pricing remains to be verified before any paid call.
 
-| Gate | Required evidence | State |
+## Current decisions
+
+- Keep PR #1 open; do not merge until the blockers are fixed and reviewed.
+- Do not run paid API calls or formal pilot yet.
+- Continue using the exact tau2 commit pinned in `experiments/pilot_factorial/environment.lock.json`.
+- Prepare a separate Python 3.12/3.13 environment for tau2; retain the host Python 3.10 mock environment.
+- Keep evolutionary computation and interaction-linkage as the research core.
+- Do not implement the full evolutionary optimizer until interaction measurement is reliable.
+
+## Gate status
+
+| Gate | State | Evidence |
 |---|---|---|
-| G0 Literature | Verified primary-source bibliography and mechanism comparison | PASS |
-| G1 Environment | Source-backed benchmark compatibility and module replacement | PASS |
-| G2 Contracts/protocol | Frozen module interfaces, variants, endpoint, statistics, and cost rules | NEEDS_REVISION pending price verification |
-| G3 Smoke | Configuration, pairing/reset, failure, and cost tests pass | PASS for mock and tau2 no-API scope |
-| G4 Pilot | Frozen factorial pilot and reproducible interaction estimates | NOT STARTED |
-| G5 Search | Fair-budget comparison of linkage-aware cooperative evolution | NOT STARTED |
+| G0 Literature | PASS | Phase 0A primary-source audit |
+| G1 Environment | PASS | tau2 API and real no-API adapter execution |
+| G2 Contracts/protocol | NEEDS_REVISION | Frozen candidate exists, provider price verification remains |
+| G3 Smoke | PASS for no-API scope | 21 tests pass on host and tau2 Python 3.12 environments |
+| G4 Pilot | NOT STARTED | Zero real benchmark episodes |
+| G5 Search | NOT STARTED | No empirical linkage validation |
 
-## Evidence discipline
+## Immediate next steps
 
-No pilot data, benchmark result, statistical significance, performance gain, or novelty claim is asserted in this file. Update this status only when supported by committed artifacts and reproducible commands.
+1. Verify provider pricing against the declared cost profile.
+2. Request explicit approval before paid exploratory smoke.
+3. Run 2 tasks × 2 seeds × 16 configurations and preserve all raw outputs.
+4. Reassess task-level variance and the sensitivity table before formal pilot approval.
+
+No real benchmark result, statistical significance, algorithmic improvement, or novelty claim is asserted.
