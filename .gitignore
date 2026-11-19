@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+secrets/
+credentials.json
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Experiment outputs (track manifests and small derived summaries explicitly)
+experiments/**/raw/
+experiments/**/cache/
+*.log
+*.tmp
