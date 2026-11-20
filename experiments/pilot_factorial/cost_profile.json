@@ -44,6 +44,9 @@
     "output": 512
   },
   "declared_rate_profile_usd_per_million_tokens": {
+    "input": 0.3,
+    "output": 1.2,
+    "input_cache_hit": 0.006,
     "input_cache_miss_peak": 0.3,
     "input_cache_hit_peak": 0.006,
     "output_peak": 1.2,

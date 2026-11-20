@@ -33,8 +33,12 @@
 ## 4. 变体和运行设置
 
 - Planner、Selector、Caller、Synthesizer 各两个变体，共 16 配置。
-- Agent model：`openai/gpt-4.1-2025-04-14`。
-- User simulator：`openai/gpt-4.1-2025-04-14`。
+- Provider/model for Agent and User Simulator: DeepSeek API `deepseek-flash` (currently served as DeepSeek-V4.1-Flash-1017 as of 2026-11-20). All four module slots use the same model alias.
+- API: OpenAI-compatible Chat Completions at `https://api.deepseek.com`.
+- Thinking/CoT disabled: `thinking={"type":"disabled"}` and `reasoning_effort="none"`.
+- Structured output: JSON mode (`response_format={"type":"json_object"}`) for JSON content responses; Caller uses native function Tool Calls with local JSON/Pydantic validation.
+- Network: direct DeepSeek connection; dedicated HTTP client uses `trust_env=false` so system proxy environment variables are ignored.
+- Record request model alias, response `model`, `system_fingerprint`, prompt hash, decoding settings, request ID, and token usage for every request. The alias is mutable; detect and stop on backend model drift.
 - Primary evaluator：`ENV`，不调用额外 judge。
 - Temperature：0.0。
 - `max_steps`：30。
@@ -88,7 +92,7 @@ Token 上界仍为每 request 2,000 input + 512 output。DeepSeek 官方价格�
 - 达到 hard cap 前不启动下一 episode。达到 hard cap 后运行状态为 `BUDGET_EXHAUSTED`，不自动追加调用。
 - 真实调用前必须验证 provider 费率和模型可用性，并得到用户明确批准。
 
-对应机器可读配置见 `experiments/pilot_factorial/cost_profile.json`。费率字段保持 `requires_provider_verification` 状态，当前不能视为已支付或已验证成本。
+对应机器可读配置见 `experiments/pilot_factorial/cost_profile.json`。DeepSeek 费率已按官方价格页核验；付费执行前仍须重新核价。当前没有真实 API 调用或实际扣费。
 
 ## 7. 缺失数据和报告规则
 
@@ -96,7 +100,9 @@ Token 上界仍为每 request 2,000 input + 512 output。DeepSeek 官方价格�
 - Infrastructure failure 保留原始错误、retry、request metadata 和 partial trajectory。retry 后仍失败时，confirmation run 标记 `INCOMPLETE_FACTORIAL`，不计算交互显著性。
 - 所有 task-level contrasts、seed-level contrasts、context-level cells 和 Holm 调整结果均可从 `episodes.jsonl` 复算。
 
-## 8. Provider pricing verification and lifecycle (2026-11-20)
+## 8. Historical OpenAI pricing verification and lifecycle (2026-11-20)
+
+> Historical review only. The active model decision is superseded by Section 10; OpenAI models are not selected for this experiment.
 
 The active provider price profile has been checked against the official OpenAI GPT-4.1 model page:
 - Standard input: USD 2.00 / 1M tokens

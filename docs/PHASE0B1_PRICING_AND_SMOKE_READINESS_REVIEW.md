@@ -133,7 +133,7 @@ PR #1 remains open and unmerged.
 
 ## Next action
 
-Execute `docs/EXECUTOR_PROMPT_PHASE0C.md`. Do not make any paid API call. The only user decision required before freezing the real-run configuration is the model lifecycle choice: retain GPT-4.1 temporarily or migrate both roles to GPT-6 Luna.
+Execute `docs/EXECUTOR_PROMPT_PHASE0C.md` using the user's now-selected DeepSeek Flash configuration. Do not make any paid API call. The model choice is resolved; implementation, no-API validation, independent review, and explicit paid-smoke approval remain required.
 
 ## 8. Superseding user model decision — DeepSeek Flash (2026-11-20)
 
