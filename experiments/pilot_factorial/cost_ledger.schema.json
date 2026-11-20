@@ -5,7 +5,7 @@
   "required": ["events", "totals"],
   "properties": {
     "events": {"type": "array"},
-    "totals": {"type": "object", "required": ["events", "input_tokens", "output_tokens", "api_cost", "failed_events", "retry_events"]}
+    "totals": {"type": "object", "required": ["events", "input_tokens", "output_tokens", "api_cost", "failed_events", "agent_failed_events", "infra_failed_events", "retry_events"]}
   },
   "additionalProperties": false
 }

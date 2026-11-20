@@ -1,49 +1,65 @@
 # Executor Handoff — NIL-CCEA
 
-**Repository:** https://github.com/yujian777555/NIL-CCEA (public, default branch main).  
-**Current workstream:** Phase 0A — source audit complete, tau2 environment selected, mock runner implemented.
-**Authoritative execution prompt:** [docs/EXECUTOR_PROMPT_PHASE0A.md](EXECUTOR_PROMPT_PHASE0A.md).  
-**Current research state:** PRE-EXPERIMENT. No real benchmark episode, performance result, or novelty claim has been established.
+**Repository:** https://github.com/yujian777555/NIL-CCEA
+**Branch:** `phase0b-adapter-statistical-corrections`
+**Base SHA for this handoff:** `4b9e21f7aed42b76a18b6ff0df2be876fec3850c`
+**PR #2:** https://github.com/yujian777555/NIL-CCEA/pull/2 (open)
+**PR #1:** https://github.com/yujian777555/NIL-CCEA/pull/1 (open)
+**Authoritative prompt:** [docs/EXECUTOR_PROMPT_PHASE0C.md](EXECUTOR_PROMPT_PHASE0C.md)
 
-## Mission
+## User-selected model
 
-Establish whether measurable, reproducible non-additive interactions exist among independently replaceable LLM-Agent modules, then use reliable signed and uncertainty-aware linkage to guide cooperative evolutionary search. Evolutionary computation and module-interaction linkage are the method core. A fixed total evaluation budget is a fairness constraint, not the research contribution.
+**Use DeepSeek Flash exclusively** for all module slots, Agent, and User Simulator:
+- API model alias: `deepseek-flash`
+- Current served model as of 2026-11-20: DeepSeek-V4.1-Flash-1017; alias is mutable.
+- OpenAI-compatible Chat Completions, base URL `https://api.deepseek.com`.
+- Disable thinking/CoT: `thinking={"type":"disabled"}`, `reasoning_effort="none"`.
+- JSON mode for structured content; Caller uses native Tool Calls and local schema validation.
+- Temperature 0.0; max output 512; input cap 2,000.
+- Direct connection: dedicated HTTPX client with `trust_env=false`, bypass system proxy.
+- Read `DEEPSEEK_API_KEY` from environment; never commit secrets.
+- Record requested model, response model, system fingerprint, request ID, prompt hash and usage.
 
-## Immediate actions
+Official docs:
+- https://api-docs.deepseek.com/quick_start/pricing/
+- https://api-docs.deepseek.com/api/create-chat-completion/
 
-1. Run the implemented tau2 v1.0.1 `HalfDuplexAgent` adapter in a Python 3.12–3.13 tau2 environment and validate four independently hashed modules under identical tools and policy.
-2. Complete adapter-side no-key construction checks and raw-file replay checks.
-3. Freeze task IDs, primary endpoint, practical threshold, Holm correction, missing-run and retry policy.
-4. Estimate paid API cost and obtain approval before any real call.
-5. Run one exploratory tau2 smoke, preserve all raw results, and review before the factorial pilot.
+## Conservative cost profile
 
-## Planned measurement design
+Peak cache-miss prices: $0.30/M input and $1.20/M output; peak cache-hit input $0.006/M; off-peak prices half. Budget uses peak cache-miss rates:
+- Request $0.0012144
+- Episode $0.072864
+- Smoke 64 episodes $4.663296; full retry upper bound $9.326592
+- Pilot 384 episodes $27.979776; full retry upper bound $55.959552
 
-The provisional design uses four binary module slots (2^4 = 16 configurations) and paired task/environment-seed evaluations. The existing target of 12 tasks × 2 seeds × 16 configurations = 384 episodes is a planning value, not an observed result or an immutable requirement. Reassess cost and statistical sensitivity before protocol freeze.
+Hard caps: $80 smoke, $400 pilot. Recheck price before paid run.
 
-For each module pair, estimate a paired difference-in-differences interaction contrast averaged over the contexts of the other module slots. Use task-clustered uncertainty, pre-specified practical effect threshold and multiplicity handling. Do not interpret uncertain edges as independence.
+## Research state
 
-## Required controls
+Phase 0A and Phase 0B are reported complete. Phase 0C client, modules, and no-API real tau2 runner are implemented. No real DeepSeek request, paid benchmark episode, statistical significance, performance gain, or novelty claim exists.
 
-- Preserve task/version, seed, model/provider/version, decoding settings, module hashes, runner commit, and config hash.
-- Keep raw trajectories immutable and summaries reproducible.
-- Count all probes, failures, retries, and diagnostic evaluations in total cost.
-- Never silently drop failed episodes or retry without accounting.
-- Do not change tasks, module variants, prompts, endpoints, or decoding parameters mid-run without a new protocol version.
-- No base-model training or fine-tuning in this milestone.
-- Do not claim novelty, significance, or improvement without primary-source and experimental evidence.
-- Do not stop the project because one module pair is null or one benchmark is incompatible; diagnose measurement validity, task dependence, noise, power, and alternatives without manufacturing positive results.
-- Keep NIL-CCEA isolated from all other repositories.
+## Phase 0C completed implementation
 
-## Acceptance gates
+- Direct DeepSeek client with no system proxy, JSON/native tool calls, audit events, usage/fingerprint checks, and safe bounded retries.
+- Four DeepSeek module wrappers and binary manifest variants.
+- Real tau2 factorial runner and 32-cell no-API Orchestrator test.
+- 29 total tests pass in host and independent tau2 environments.
+- Self-review is recorded in `docs/PHASE0C_INDEPENDENT_REVIEW.md`; external independent review is still required.
 
-- G0: primary-source literature audit complete and closest prior art compared. PASS.
-- G1: benchmark/task/reset/scoring/trajectory and module-replacement compatibility documented. PASS at source level.
-- G2: module contracts, variants, primary endpoint, statistical protocol, and cost rules frozen. NEEDS_REVISION pending adapter and endpoint review.
-- G3: mock smoke test and automated pairing/reset/failure/cost tests pass. PASS for the local mock scope.
-- G4: formal factorial pilot run after independent review.
-- G5: fair-budget evolutionary comparison against independent and non-linkage baselines.
+## Remaining work
 
-## Required handoff report
+1. Establish GitHub Actions result and independent review.
+2. Verify DeepSeek endpoint and pricing immediately before any paid request.
+3. Obtain explicit paid-smoke approval only after preflight is complete.
 
-Report exact repository, branch, start/end SHA, changed files, primary-source URLs, environment evidence, test commands/results, API usage/cost, gate status, unresolved risks, and the next concrete experiment. Clearly label completed, implemented-but-unvalidated, planned, and hypothesized work.
+## Gates
+
+- G0 Literature: PASS
+- G1 Environment: PASS for tested scope
+- G2 Contracts/protocol: NEEDS_REVISION
+- G3 No-API integration: PASS, 29 tests
+- G3 Real-runner readiness: PASS for no-API scope, 32 cells
+- G4 Paid smoke: NOT STARTED
+- G5 Search: NOT STARTED
+
+The user has selected the model but has **not** authorized paid API calls. Keep this repository isolated from all other projects.

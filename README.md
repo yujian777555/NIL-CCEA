@@ -8,9 +8,11 @@
 
 - **Project stage:** PRE-EXPERIMENT
 - **Algorithm label:** NIL-CCEA v0.1 (working name; not a validated contribution)
-- **Current objective:** complete the Phase 0A literature and environment audit, then validate a reproducible module-interaction pilot
+- **Current objective:** complete Phase 0C DeepSeek Flash provider integration and validate a reproducible module-interaction pilot
 - **Evidence status:** no experimental performance claim has been established
 - **Remote repository:** https://github.com/yujian777555/NIL-CCEA (public)
+- **Selected model:** `deepseek-flash` for all four modules, Agent, and User Simulator; non-thinking JSON mode; direct API connection bypassing system proxy
+- **Execution state:** no paid API call approved; real tau2 runner still pending
 
 ## Research question
 
@@ -36,7 +38,7 @@ A null result for one module pair is not a project stop condition. It is evidenc
 
 ## Current execution handoff
 
-The immediate task is defined in [docs/EXECUTOR_PROMPT_PHASE0A.md](docs/EXECUTOR_PROMPT_PHASE0A.md). It directs the executor to audit primary sources and benchmark compatibility in parallel, verify whether module slots can be independently replaced, and reach a mock-tested pilot harness before starting the formal experiment.
+The immediate task is defined in [docs/EXECUTOR_PROMPT_PHASE0C.md](docs/EXECUTOR_PROMPT_PHASE0C.md). Implement the DeepSeek Flash client and provider-backed modules, correct Caller control flow, build the real tau2 factorial runner, and validate the full request contract without making paid API calls.
 
 ## Repository map
 
@@ -50,6 +52,7 @@ The immediate task is defined in [docs/EXECUTOR_PROMPT_PHASE0A.md](docs/EXECUTOR
 │   ├── ALGORITHM_SPEC_v0.1.md
 │   ├── EXPERIMENT_PROTOCOL_PILOT.md
 │   ├── EXECUTOR_PROMPT_PHASE0A.md
+│   ├── EXECUTOR_PROMPT_PHASE0C.md
 │   ├── LITERATURE_LEDGER.md
 │   ├── RESEARCH_LOG.md
 │   └── HANDOFF.md

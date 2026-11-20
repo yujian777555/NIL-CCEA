@@ -34,7 +34,7 @@ class CostLedger:
         self.events: list[CostEvent] = []
 
     def add(self, event: CostEvent) -> None:
-        if event.status not in {"success", "failed", "retry", "timeout"}:
+        if event.status not in {"success", "agent_failed", "infra_failed", "retry", "timeout"}:
             raise ValueError(f"未知账本状态: {event.status}")
         self.events.append(event)
 
@@ -44,6 +44,11 @@ class CostLedger:
             "input_tokens": sum(event.input_tokens for event in self.events),
             "output_tokens": sum(event.output_tokens for event in self.events),
             "api_cost": sum(event.api_cost for event in self.events),
-            "failed_events": sum(event.status in {"failed", "timeout"} for event in self.events),
+            "failed_events": sum(
+                event.status in {"agent_failed", "infra_failed", "failed", "timeout"}
+                for event in self.events
+            ),
+            "agent_failed_events": sum(event.status == "agent_failed" for event in self.events),
+            "infra_failed_events": sum(event.status == "infra_failed" for event in self.events),
             "retry_events": sum(event.status == "retry" for event in self.events),
         }

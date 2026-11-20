@@ -1,48 +1,63 @@
 # Next Steps
 
-**Current task:** execute the Phase 0A handoff prompt in [docs/EXECUTOR_PROMPT_PHASE0A.md](docs/EXECUTOR_PROMPT_PHASE0A.md).
+**Current task:** execute [Phase 0C DeepSeek Flash integration and real-runner readiness](docs/EXECUTOR_PROMPT_PHASE0C.md).
 
-## Completed in the current Phase 0A turn
+## Frozen model decision
 
-1. Created branch `phase0a-literature-environment-audit` from remote main SHA `98e202f21bb82f6df4835f48e4d1c922113719ad`.
-2. Added the primary-source literature audit and updated the literature ledger.
-3. Audited tau-bench, tau2-bench, ToolSandbox, Toolathlon, and AgentSpec. Locked tau2-bench v1.0.1 as the primary candidate and kept ToolSandbox as a diagnostic fallback.
-4. Added draft module contracts and the pre-freeze pilot design.
-5. Implemented the local mock runner, manifest/hash generation, retry/failure accounting, cost ledger, raw episode schema, and pairwise interaction estimator.
-6. Added typed mock module contracts and static leakage checks.
-7. Added the tau2 adapter entry point behind an external-dependency gate.
-8. Ran the local test suite with eleven passing tests and zero real API calls.
+User-selected model: `deepseek-flash` for Planner, Selector, Caller, Synthesizer, Agent, and User Simulator.
 
-## Immediate execution order
+- Base URL: `https://api.deepseek.com`
+- Current served model as of 2026-11-20: DeepSeek-V4.1-Flash-1017; capture returned model and system fingerprint because the alias is mutable.
+- Thinking/CoT disabled: `thinking={"type":"disabled"}`, `reasoning_effort="none"`.
+- JSON mode for structured content; native Tool Calls for Caller; validate locally.
+- Temperature 0.0; max output 512; input cap 2,000.
+- Direct network only; dedicated HTTPX client `trust_env=false`; no system proxy.
+- Key from `DEEPSEEK_API_KEY`; never store in Git.
+- Do not use GPT-4.1, GPT-6 Luna, deepseek-v4-pro, or retired DeepSeek model aliases.
 
-1. Run the tau2 `HalfDuplexAgent` adapter in a Python 3.12–3.13 tau2 v1.0.1 environment. The adapter entry point is implemented but unvalidated.
-2. Add adapter-side no-key construction tests that verify identical tool lists, domain policy, model version, decoding settings, and interface schemas across all 16 manifests.
-3. Add raw-file loading and derived-summary recomputation tests so every interaction estimate can be regenerated from `episodes.jsonl`.
-4. Resolve G2 by freezing the tau2 task IDs, primary endpoint, practical threshold, Holm correction, missing-run policy, retry limit, and stop budget.
-5. Produce a real API cost estimate and stop condition. Ask for approval before any paid calls.
-6. Run one real tau2 adapter smoke only after the cost gate. Preserve all raw results and mark the run exploratory.
-7. Review the smoke and then decide whether the 12-task factorial pilot is sufficiently powered and affordable.
+## Conservative DeepSeek cost ceilings
 
-## Research guardrails
+Peak cache-miss rates: $0.30/M input, $1.20/M output; cache-hit peak $0.006/M; off-peak half. Budget on peak cache-miss:
+- $0.0012144/request
+- $0.072864/episode
+- $4.663296/64-episode smoke; $9.326592 if every request retries once
+- $27.979776/384-episode pilot; $55.959552 if every request retries once
 
-- Keep evolutionary computation and module-interaction linkage as the method core.
-- Fixed total evaluation budget is a fairness constraint, not a new budget-allocation research direction.
-- A null result for one module pair is a diagnosis trigger, not a project stop condition. Investigate manipulation validity, task-family dependence, noise, statistical power, and higher-order effects using separately versioned diagnostics.
-- Do not manufacture positive interactions or change endpoints after observing results.
-- Do not implement the complete optimizer before the interaction-measurement protocol is validated.
-- No base-model training or fine-tuning in this milestone.
-- Count every probe, failed call, retry, and diagnostic evaluation in total cost.
-- Keep NIL-CCEA separate from all other repositories.
+Keep $80 smoke and $400 pilot hard caps. Recheck pricing before any paid call.
 
-## Acceptance gates
+## Phase 0C progress
 
-| Gate | Required evidence | State |
-|---|---|---|
-| G0 Literature | Verified primary-source bibliography and mechanism comparison | PASS |
-| G1 Environment | Source-backed benchmark and module-replacement compatibility | PASS at source level |
-| G2 Contracts/protocol | Frozen interfaces, variants, endpoint, statistics, and cost rules | NEEDS_REVISION |
-| G3 Smoke | All configurations, pairing/reset, failure and cost tests pass | PASS for mock scope |
-| G4 Pilot | Frozen factorial pilot and reproducible interaction estimates | NOT STARTED |
-| G5 Search | Fair-budget linkage-aware evolutionary comparison | NOT STARTED |
+- DeepSeek client, four provider-backed modules, and the real tau2 factorial runner are implemented.
+- Fake Client and real tau2 no-API tests pass. No DeepSeek request has been sent.
+- GitHub Actions host workflow passes on head `26d905d8ccafbcad9384f49978ac8d846c3b526c`.
 
-Do not report a gate as passed without committed artifacts and reproducible evidence.
+## Required order
+
+1. Recheck DeepSeek endpoint, model availability, and pricing.
+2. Obtain independent review of the client and runner.
+3. Ask for explicit paid-smoke approval only after all preflight gates pass.
+
+## Hard guardrails
+
+- No paid API call without explicit user approval.
+- Model choice is already made; do not ask the user to choose GPT-4.1 or GPT-6 Luna again.
+- No model mixing within a factorial dataset.
+- No CoT/thinking mode.
+- JSON outputs must be validated; never trust raw model tool arguments.
+- DeepSeek requests must bypass the system proxy.
+- Do not implement the full evolutionary optimizer before trustworthy interaction measurements.
+- Preserve all failures, retries, raw trajectories, manifests and costs.
+- Two exploratory task clusters are descriptive only.
+- Null/weak interaction triggers diagnosis and further experiments, not automatic termination or fabricated positive results.
+
+## Gate status
+
+| Gate | State |
+|---|---|
+| G0 Literature | PASS |
+| G1 Environment | PASS for tested scope |
+| G2 Contracts/protocol | NEEDS_REVISION |
+| G3 No-API integration | PASS |
+| G3 Real-runner readiness | PASS for no-API scope |
+| G4 Paid exploratory smoke | NOT STARTED |
+| G5 Search | NOT STARTED |

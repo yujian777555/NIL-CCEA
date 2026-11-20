@@ -1,6 +1,6 @@
 # NIL-CCEA Pilot Design R1
 
-**状态**：冻结前候选协议。没有正式 benchmark 运行，不能视为确认性预注册。
+**状态**：Phase 0B 统计修订后的冻结候选协议。正式 benchmark 仍未运行。
 **环境候选**：τ²-bench `v1.0.1` text-v1。
 **目标**：先验证四模块交互测量、轨迹审计和成本账本，再决定是否进入 linkage-aware cooperative evolution。
 
@@ -21,17 +21,17 @@
 
 ## 3. 任务和配对
 
-- 正式候选任务集从 tau2 发布的 canonical task IDs 中预先抽取 12 个，建议 retail 和 airline 各 6 个。
-- 每个 task 使用 2 个固定 environment/user-simulator seed，形成 24 个 task-seed cluster。
+- 正式候选任务集固定为 retail `[5, 9, 12, 17, 18, 26]` 与 airline `[2, 6, 8, 13, 16, 18]`，均来自 v1.0.1 的 `test` split。
+- 每个 task 使用两个固定 seed `0` 和 `1`。独立统计 cluster 是 12 个 task，两个 seed 是 task 内重复测量。
 - 16 个配置在完全相同的 task ID、task version、language、domain、binding revision、trial 和 resolved seed 下运行。
 - 运行顺序由固定伪随机排列生成，排列种子写入 manifest。配置顺序不能根据中间结果改变。
-- 同一 task cluster 内的 episode 结果保留配对关系，不能在 bootstrap 中打散成独立样本。
+- 同一 task 内的两个 seed 先分别形成完整 factorial contrast，再在 task 内平均。bootstrap 只重采样 12 个 task，不能把 seed 或配置当成独立 cluster。
 
 ## 4. 终点
 
 ### 主终点
 
-`task_success`，直接取 tau2 benchmark 原生 task reward。正式冻结前必须确定使用完整 reward product 还是拆分后的 DB/ENV_ASSERTION 主终点。候选主终点优先选择不依赖额外 LLM judge 的 DB 或 ENV_ASSERTION 子集。
+`environment_reward`，取 tau2 原生 `EvaluationType.ENV` 的 DB 与 environment assertion 评分。完整 task reward、COMMUNICATE 和 NL_ASSERTION 作为次要诊断，主实验不调用额外 LLM judge。
 
 ### 次要终点
 
@@ -58,7 +58,7 @@ I_{ij}(z)=\mu(1,1,z)-\mu(1,0,z)-\mu(0,1,z)+\mu(0,0,z).
 I_{ij}=\frac{1}{4}\sum_z I_{ij}(z).
 \]
 
-每个 task cluster 单独计算 contrast，再以 task cluster 为重采样单位估计 95% bootstrap interval。不能把同一 task 的两个 seed 或 16 个配置视为 32 个独立 task。
+每个 task-seed 计算完整四上下文 contrast，再对两个 seed 求 task-level 平均。以 task 为重采样单位估计 95% bootstrap interval。不能把同一 task 的两个 seed 或 16 个配置视为独立 task。
 
 ### 交互状态
 
@@ -75,14 +75,14 @@ I_{ij}=\frac{1}{4}\sum_z I_{ij}(z).
 
 ## 6. 预算和成本
 
-规划目标仍是 12 tasks × 2 seeds × 16 configurations = 384 episodes，但这不是冻结样本量。每个 episode 需要记录所有 agent、user simulator、judge、失败调用和 retry，因此不能从 episode 数直接推导美元成本。
+冻结计划为 12 tasks × 2 seeds × 16 configurations = 384 episodes。每个 episode 需要记录 agent、user simulator、失败调用和 retry。主终点使用 ENV evaluator，不产生 judge 调用。
 
 正式 pilot 前必须完成：
 
 1. 使用 mock runner 测量每个配置的最大模块调用次数和失败路径；
-2. 用一条无结果保留的 provider dry-run 或价格表生成调用上限估算；
-3. 指定单 episode、全 pilot、失败重试和停止条件的成本上限；
-4. 得到用户对付费 API 运行的明确批准后才能启动真实 pilot。
+2. 固定 agent/user 为 `openai/gpt-4.1-2025-04-14`，temperature 0.0，max_steps 30；主终点评估类型固定为 `ENV`；
+3. 每个 provider request 允许最多一次基础设施 retry，agent task failure 不重试，基础设施 retry 全部计入预算；
+4. 在价格验证完成并得到用户明确批准后才能启动真实 pilot。
 
 固定总 Agent-execution budget 只用于后续算法比较的公平性。交互探测、诊断、失败和重试均计入所有方法的总预算。
 
@@ -90,7 +90,7 @@ I_{ij}=\frac{1}{4}\sum_z I_{ij}(z).
 
 1. mock adapter 与 16 配置完整性测试；
 2. pairing、reset、cache key、hash、failure/retry、ledger 和复算测试；
-3. 2 tasks × 1 seed × 16 configurations 的本地 smoke，使用纯 mock environment；
+3. 2 tasks × 2 seeds × 16 configurations 的本地 smoke，使用纯 mock environment；
 4. 代码审查和协议修订；
 5. 仅在用户批准后运行一条真实 tau2 adapter smoke；
 6. 根据实际调用数、方差和成本冻结 12-task pilot 或调整样本量；
@@ -117,7 +117,7 @@ I_{ij}=\frac{1}{4}\sum_z I_{ij}(z).
 |---|---|---|
 | G0 Literature | PASS | 见 `LITERATURE_AUDIT_PHASE0A.md` 和更新后的 ledger |
 | G1 Environment | PASS | tau2 v1.0.1 和模块注入 API 有源码证据 |
-| G2 Contracts/protocol | NEEDS_REVISION | 契约与统计草案已实现，需 adapter smoke 和 endpoint/δ 预冻结 |
-| G3 Smoke | NOT STARTED | mock runner 正在实现 |
+| G2 Contracts/protocol | NEEDS_REVISION | 统计和 adapter 已修订，provider 价格验证与 review 仍待完成 |
+| G3 Smoke | PASS（无 API） | mock 与真实 tau2 类的 no-API smoke 已通过 |
 | G4 Pilot | NOT STARTED | 禁止在 G3 和成本批准前运行 |
 | G5 Search | NOT STARTED | 禁止在交互测量可靠前实现完整搜索 |
