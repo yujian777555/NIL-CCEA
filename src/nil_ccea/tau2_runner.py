@@ -10,7 +10,7 @@ from typing import Any, Callable
 
 from .manifest import SLOTS, build_run_manifest, configuration_id
 from .factorial import generate_binary_configurations, validate_complete_binary_configurations
-from .tau2_adapter import build_tau2_agent_class
+from .tau2_adapter import InvalidToolCallError, build_tau2_agent_class
 
 
 class Tau2RunnerError(RuntimeError):
@@ -32,6 +32,7 @@ class Tau2FactorialRunner:
         max_steps: int = 30,
         max_errors: int = 10,
         evaluate: bool = True,
+        max_retries: int = 1,
     ) -> None:
         self.tau2_source_commit = tau2_source_commit
         self.task_version = task_version
@@ -42,6 +43,7 @@ class Tau2FactorialRunner:
         self.max_steps = max_steps
         self.max_errors = max_errors
         self.evaluate = evaluate
+        self.max_retries = max(0, max_retries)
         self.agent_class = build_tau2_agent_class()
 
     def run(
@@ -63,6 +65,16 @@ class Tau2FactorialRunner:
         return records
 
     def run_episode(
+        self, task: Any, seed: int, configuration: dict[str, int]
+    ) -> dict[str, Any]:
+        for retry_index in range(self.max_retries + 1):
+            record = self._run_episode_once(task, seed, configuration)
+            record["retry_count"] = retry_index
+            if record["status"] != "infra_failed" or retry_index >= self.max_retries:
+                return record
+        raise Tau2RunnerError("tau2 episode retry loop exited unexpectedly")
+
+    def _run_episode_once(
         self, task: Any, seed: int, configuration: dict[str, int]
     ) -> dict[str, Any]:
         environment = self.environment_factory()
@@ -130,6 +142,17 @@ class Tau2FactorialRunner:
             primary_score = None
             if reward_info is not None:
                 primary_score = getattr(reward_info, "reward", None)
+            termination_reason = getattr(simulation, "termination_reason", None)
+            termination_value = getattr(termination_reason, "value", str(termination_reason))
+            if not self.evaluate:
+                status = "success"
+                failure_kind = None
+            elif termination_value in {"agent_error", "too_many_errors"} or primary_score == 0:
+                status = "agent_failed"
+                failure_kind = "agent"
+            else:
+                status = "success"
+                failure_kind = None
             return {
                 "run_id": run_id,
                 "mode": "tau2-text-v1",
@@ -141,15 +164,18 @@ class Tau2FactorialRunner:
                 "configuration": configuration,
                 "config_hash": manifest.config_hash,
                 "source_commit": self.tau2_source_commit,
-                "status": "agent_failed" if self.evaluate and primary_score == 0 else "success",
-                "failure_kind": None,
+                "status": status,
+                "failure_kind": failure_kind,
                 "primary_score": primary_score,
                 "trajectory": [message.model_dump() for message in messages],
                 "retry_count": 0,
                 "failures": [],
+                "termination_reason": termination_value,
                 "manifest": manifest.to_dict(),
             }
         except Exception as exc:
+            failure_kind = "agent" if isinstance(exc, InvalidToolCallError) else "infrastructure"
+            status = "agent_failed" if failure_kind == "agent" else "infra_failed"
             return {
                 "run_id": run_id,
                 "mode": "tau2-text-v1",
@@ -161,8 +187,8 @@ class Tau2FactorialRunner:
                 "configuration": configuration,
                 "config_hash": manifest.config_hash,
                 "source_commit": self.tau2_source_commit,
-                "status": "infra_failed",
-                "failure_kind": "infrastructure",
+                "status": status,
+                "failure_kind": failure_kind,
                 "primary_score": None,
                 "trajectory": [],
                 "retry_count": 0,

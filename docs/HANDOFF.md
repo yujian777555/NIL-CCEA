@@ -44,6 +44,7 @@ Phase 0A and Phase 0B are reported complete. Phase 0C client, modules, and no-AP
 - Four DeepSeek module wrappers and binary manifest variants.
 - Real tau2 factorial runner and 32-cell no-API Orchestrator test.
 - 29 total tests pass in host and independent tau2 environments.
+- Self-review is recorded in `docs/PHASE0C_INDEPENDENT_REVIEW.md`; external independent review is still required.
 
 ## Remaining work
 
@@ -56,8 +57,8 @@ Phase 0A and Phase 0B are reported complete. Phase 0C client, modules, and no-AP
 - G0 Literature: PASS
 - G1 Environment: PASS for tested scope
 - G2 Contracts/protocol: NEEDS_REVISION
-- G3 No-API integration: existing tau2 tests reported PASS; DeepSeek request-contract tests pending
-- G3 Real-runner readiness: BLOCKED
+- G3 No-API integration: PASS, 29 tests
+- G3 Real-runner readiness: PASS for no-API scope, 32 cells
 - G4 Paid smoke: NOT STARTED
 - G5 Search: NOT STARTED
 

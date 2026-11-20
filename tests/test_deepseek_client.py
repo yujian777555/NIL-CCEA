@@ -59,7 +59,7 @@ class DeepSeekClientTests(unittest.TestCase):
         self.assertEqual(request["json"]["response_format"], {"type": "json_object"})
         self.assertEqual(request["json"]["temperature"], 0.0)
         self.assertEqual(request["json"]["max_tokens"], 512)
-        self.assertNotIn("thinking", request["json"])
+        self.assertEqual(request["json"]["thinking"], {"type": "disabled"})
         self.assertEqual(result.usage["total_tokens"], 14)
         self.assertEqual(fake.calls[0]["headers"]["Authorization"], "Bearer secret")
         self.assertEqual(client.audit_events[0]["status"], "success")

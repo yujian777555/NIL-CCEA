@@ -144,6 +144,7 @@ class DeepSeekClient:
             "temperature": self.temperature,
             "max_tokens": self.max_output_tokens,
             "stream": False,
+            "thinking": {"type": "disabled"},
         }
         if response_format is not None:
             payload["response_format"] = response_format

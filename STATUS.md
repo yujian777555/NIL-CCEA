@@ -54,13 +54,13 @@ Existing hard caps remain $80 exploratory and $400 pilot. Recheck prices immedia
 - DeepSeek Planner, Selector, Caller, and Synthesizer wrappers are implemented with two binary manifest variants each.
 - Real tau2 factorial runner is implemented and no-API tested over 32 task-seed-configuration cells with real tau2 Orchestrator classes.
 - GitHub Actions workflow is added for the no-API host test suite.
+- Self-review is recorded in `docs/PHASE0C_INDEPENDENT_REVIEW.md`; an external independent review remains pending.
 
 ## Remaining pre-smoke blockers
 
-1. Establish actual GitHub Actions result for the new workflow.
-2. Review DeepSeek request contract against the current provider endpoint before any paid call.
-3. Obtain independent review of the DeepSeek client and real runner.
-4. Ask for explicit paid-smoke approval only after preflight gates pass.
+1. Review DeepSeek request contract against the current provider endpoint before any paid call.
+2. Obtain independent review of the DeepSeek client and real runner.
+3. Ask for explicit paid-smoke approval only after preflight gates pass.
 
 ## Gate status
 
