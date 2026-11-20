@@ -1,3 +1,5 @@
+> **Superseded planning draft (2026-11-20):** The smoke row below originally used 2 tasks × 1 seed = 32 episodes. The current Phase 0B candidate uses 2 tasks × 2 seeds × 16 configurations = 64 episodes. Use [PHASE0B_PROTOCOL_FREEZE.md](PHASE0B_PROTOCOL_FREEZE.md) as the current candidate protocol. This document is retained for historical design context.
+
 # Pilot Experiment Protocol: 2^4 Module Factorial
 
 **State:** Phase 0B corrected protocol candidate; no real runs have been executed.

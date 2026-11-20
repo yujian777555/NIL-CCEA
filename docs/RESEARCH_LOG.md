@@ -72,10 +72,34 @@
 - Added real tau2 no-API tests for 16 permission-invariant configurations, schema validation, multi-turn tool execution, state recovery, manifest metadata, and Orchestrator trajectories.
 - No paid API calls were made. Exploratory and formal cost caps are recorded in `docs/PHASE0B_PROTOCOL_FREEZE.md` and `experiments/pilot_factorial/cost_profile.json`.
 
-## 2026-11-20 — Phase 0C DeepSeek integration chain
+## 2026-11-20 — Phase 0B.1 pricing and smoke-readiness review
 
-- Added `deepseek_client.py` with direct HTTPX transport, `trust_env=False`, JSON and native tool-call modes, usage/cost accounting, model fingerprint tracking, classified errors, audit events, and bounded retry behavior.
-- Added `deepseek_modules.py` for Planner, Selector, Caller, and Synthesizer under the existing contracts. Caller uses native tool calls and adapter-side tau2 schema validation.
-- Added `tau2_runner.py` for real tau2 Orchestrator factorial execution, fresh environment instances, manifest binding, trajectory serialization, and optional ENV evaluation.
-- Added 29 host-side Phase 0C tests and expanded pinned tau2 no-API integration to 29 passing tests. The no-API run exercised 16 configuration permission invariance and 32 real tau2 Orchestrator episodes with local modules.
-- DeepSeek API calls remain at zero. The next paid action remains gated on model availability, current price verification, and explicit user approval.
+- Verified OpenAI GPT-4.1 standard rates from the official model page: $2/M input, $0.50/M cached input, $8/M output. The active cost profile uses uncached input pricing and its upper-bound arithmetic is correct.
+- Confirmed `gpt-4.1-2025-04-14` is deprecated with announced shutdown date 2027-01-14; OpenAI lists `gpt-6-luna` as the recommended replacement. No model switch was made.
+- Recorded a reference-only GPT-6 Luna standard rate of $0.10/M input and $0.50/M output; Chat Completions function calling requires `reasoning_effort=none`.
+- Identified residual adapter control-flow issue: Caller is invoked before the action-kind branch, including respond/stop decisions.
+- Confirmed provider-backed module implementations and a real tau2 factorial runner are absent; the current runner/modules remain mock-only.
+- Identified practical-delta mismatch: code default/candidate is 0.05, while the protocol sensitivity table is for 0.10.
+- Marked the old 32-episode smoke planning row as superseded by the current 64-episode candidate.
+- PR #2 remains open and unmerged. GitHub reports zero status checks/check runs for its current head. No paid API calls were made.
+- Added Phase 0C handoff requirements. G2 remains NEEDS_REVISION; real-runner readiness is BLOCKED; G4 remains NOT STARTED.
+
+## 2026-11-20 — User selects DeepSeek Flash for NIL-CCEA
+
+- User explicitly selected `deepseek-flash` instead of the previously discussed OpenAI models.
+- Decision applies uniformly to Planner, Selector, Caller, Synthesizer, Agent, and User Simulator. No mixed-model factorial datasets.
+- Official DeepSeek docs identify the alias as serving DeepSeek-V4.1-Flash-1017 as of this date; because the alias is mutable, capture response model and system fingerprint on every request.
+- Fixed API configuration: OpenAI-compatible Chat Completions at `https://api.deepseek.com`; thinking/CoT disabled; JSON mode for structured outputs; temperature 0.0; output cap 512.
+- DeepSeek requests must bypass the system proxy via a dedicated HTTP client with `trust_env=false`; do not change global proxy settings.
+- Verified official peak rates: $0.30/M input cache miss, $0.006/M input cache hit, $1.20/M output; off-peak rates are half. Budget upper bounds use peak cache-miss rates.
+- New conservative estimates: $0.0012144/request; $0.072864/episode; $4.663296 for 64-episode smoke; $9.326592 with one retry on every request; $27.979776 for 384-episode pilot; $55.959552 with one retry on every request.
+- Model selection is not paid-run approval. No API call was made; paid smoke remains NOT STARTED.
+- Phase 0C now targets DeepSeek client/request-contract integration, four provider-backed modules, real tau2 runner, Caller control-flow correction, and no-key tests.
+
+## 2026-11-20 — Phase 0C implementation chain completed
+
+- Implemented the DeepSeek Flash client, provider-backed module wrappers, and real tau2 factorial runner.
+- Added request audit events, token/cost calculation, fingerprint tracking, direct no-proxy transport, JSON/native tool-call handling, and bounded retries.
+- Added Fake Client tests, binary provider variant tests, CI workflow, and a reproducible real tau2 no-API test script.
+- Host suite passes 29 tests with tau2 tests skipped when external tau2 is absent. Python 3.12.16 tau2 suite passes all 29 tests. DeepSeek API calls remain 0.
+- Real-runner no-API test executes 32 task-seed-configuration cells using real tau2 Orchestrator classes and local modules. The full 64-episode paid smoke remains unstarted.

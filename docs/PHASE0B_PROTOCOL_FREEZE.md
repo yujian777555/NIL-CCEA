@@ -33,8 +33,12 @@
 ## 4. 变体和运行设置
 
 - Planner、Selector、Caller、Synthesizer 各两个变体，共 16 配置。
-- Agent model：`openai/gpt-4.1-2025-04-14`。
-- User simulator：`openai/gpt-4.1-2025-04-14`。
+- Provider/model for Agent and User Simulator: DeepSeek API `deepseek-flash` (currently served as DeepSeek-V4.1-Flash-1017 as of 2026-11-20). All four module slots use the same model alias.
+- API: OpenAI-compatible Chat Completions at `https://api.deepseek.com`.
+- Thinking/CoT disabled: `thinking={"type":"disabled"}` and `reasoning_effort="none"`.
+- Structured output: JSON mode (`response_format={"type":"json_object"}`) for JSON content responses; Caller uses native function Tool Calls with local JSON/Pydantic validation.
+- Network: direct DeepSeek connection; dedicated HTTP client uses `trust_env=false` so system proxy environment variables are ignored.
+- Record request model alias, response `model`, `system_fingerprint`, prompt hash, decoding settings, request ID, and token usage for every request. The alias is mutable; detect and stop on backend model drift.
 - Primary evaluator：`ENV`，不调用额外 judge。
 - Temperature：0.0。
 - `max_steps`：30。
@@ -68,14 +72,17 @@
 
 ### Token 和美元估算
 
-为形成可审计上界，先使用以下声明式 token cap。实际 provider usage 必须由 tau2/LiteLLM response usage 覆盖。
+Token 上界仍为每 request 2,000 input + 512 output。DeepSeek 官方价格分峰谷时段；为形成不依赖运行时段的保守预算，使用**高峰、输入缓存未命中**费率：
 
-- 每 request 上界：2,000 input tokens + 512 output tokens。
-- 费率配置：input 2 USD/M tokens，output 8 USD/M tokens。该费率仅是待验证的预算 profile，不能当作当前公开价格事实。
-- 单 request 上界：`2000/1e6*2 + 512/1e6*8 = 0.008096 USD`。
-- 单 episode 正常上界：约 `0.486 USD`。
-- 64-episode exploratory smoke 正常上界：约 `31.09 USD`，含一次 retry 上界约 `62.18 USD`。
-- 384-episode pilot 正常上界：约 `186.53 USD`，含一次 retry 上界约 `373.06 USD`。
+- 高峰 input cache miss：0.30 USD / 1M tokens；cache hit：0.006 USD / 1M tokens。
+- 高峰 output：1.20 USD / 1M tokens。
+- 峰时段：UTC 周一至周五 01:00–04:00、06:00–10:00（中国法定节假日除外）；其他时段费率减半。
+- 单 request 保守上界：`2000/1e6*0.30 + 512/1e6*1.20 = 0.0012144 USD`。
+- 单 episode 正常上界：`60 * 0.0012144 = 0.072864 USD`。
+- 64-episode exploratory smoke 正常上界：约 `4.6633 USD`；所有 request 均重试一次的极端上界约 `9.3266 USD`。
+- 384-episode pilot 正常上界：约 `27.9798 USD`；所有 request 均重试一次的极端上界约 `55.9596 USD`。
+
+以上使用高峰 cache-miss 费率，不依赖缓存折扣。实际成本必须由 DeepSeek 返回的 token usage 和实际账单核对。价格可能变化，付费执行前必须再次核验官方价格页面。
 
 ### 停止条件
 
@@ -85,10 +92,60 @@
 - 达到 hard cap 前不启动下一 episode。达到 hard cap 后运行状态为 `BUDGET_EXHAUSTED`，不自动追加调用。
 - 真实调用前必须验证 provider 费率和模型可用性，并得到用户明确批准。
 
-对应机器可读配置见 `experiments/pilot_factorial/cost_profile.json`。费率字段保持 `requires_provider_verification` 状态，当前不能视为已支付或已验证成本。
+对应机器可读配置见 `experiments/pilot_factorial/cost_profile.json`。DeepSeek 费率已按官方价格页核验；付费执行前仍须重新核价。当前没有真实 API 调用或实际扣费。
 
 ## 7. 缺失数据和报告规则
 
 - Agent task failure 计为 primary endpoint 0，并保留完整轨迹。
 - Infrastructure failure 保留原始错误、retry、request metadata 和 partial trajectory。retry 后仍失败时，confirmation run 标记 `INCOMPLETE_FACTORIAL`，不计算交互显著性。
 - 所有 task-level contrasts、seed-level contrasts、context-level cells 和 Holm 调整结果均可从 `episodes.jsonl` 复算。
+
+## 8. Historical OpenAI pricing verification and lifecycle (2026-11-20)
+
+> Historical review only. The active model decision is superseded by Section 10; OpenAI models are not selected for this experiment.
+
+The active provider price profile has been checked against the official OpenAI GPT-4.1 model page:
+- Standard input: USD 2.00 / 1M tokens
+- Cached input: USD 0.50 / 1M tokens
+- Standard output: USD 8.00 / 1M tokens
+
+The budget upper bound intentionally uses uncached input pricing. The arithmetic in `experiments/pilot_factorial/cost_profile.json` is unchanged and verified.
+
+**Lifecycle warning:** `gpt-4.1-2025-04-14` is marked Deprecated. OpenAI lists 2027-01-14 as its shutdown date and recommends `gpt-6-luna`. The model decision is unresolved; do not silently switch models and do not make a paid request until the user explicitly chooses. Do not mix model versions within a factorial dataset.
+
+Official sources:
+- https://developers.openai.com/api/docs/models/gpt-4.1
+- https://developers.openai.com/api/docs/deprecations
+- https://developers.openai.com/api/docs/models/gpt-6-luna
+
+## 9. Remaining pre-smoke consistency checks
+
+- The intended practical-delta candidate is `0.05` (matching the estimator default and Phase 0B completion report). The sensitivity table in Section 5 is explicitly calculated for `delta=0.10`; it does not establish precision/power for `delta=0.05`. Recompute the table before the confirmatory pilot.
+- The 64-episode exploratory smoke (2 tasks × 2 seeds × 16 configurations) supersedes the earlier 32-episode row in `docs/EXPERIMENT_PROTOCOL_PILOT.md`.
+- The current adapter still calls Caller before branching on `selection.kind`; Phase 0C must ensure Caller is invoked only for `tool_call`.
+- Current no-API tests establish tau2 class/Orchestrator compatibility, not a paid-run implementation. Provider-backed module classes and a real tau2 factorial runner are still required.
+
+
+
+## 10. DeepSeek Flash model decision (2026-11-20)
+
+**User-selected active model:** `deepseek-flash` for Agent and User Simulator, and for Planner, Selector, Caller, and Synthesizer. GPT-4.1 and GPT-6 Luna are not selected for this experiment.
+
+As of this protocol revision, DeepSeek's official model page identifies the `deepseek-flash` alias as serving DeepSeek-V4.1-Flash-1017. The API alias is mutable rather than an immutable snapshot. Every request must log the requested alias, response `model`, `system_fingerprint`, prompt hash, decoding settings, request ID, and token usage. If backend identity changes during a run, stop and quarantine the run rather than mixing model backends.
+
+Fixed API/decode settings:
+- OpenAI-compatible Chat Completions; base URL `https://api.deepseek.com`.
+- Thinking disabled: `thinking={"type":"disabled"}`; `reasoning_effort="none"`.
+- JSON mode for structured JSON content responses; Caller uses native Tool Calls and validates arguments locally against the selected tau2 tool schema.
+- Temperature 0.0; max output 512 tokens; declared input cap 2,000 tokens.
+- Direct network only. Configure the dedicated HTTP client with `trust_env=false`; do not route DeepSeek through the system proxy and do not alter global proxy configuration.
+- Use `DEEPSEEK_API_KEY` from the runtime environment; never commit or log credentials.
+- Do not use `deepseek-v4-pro`, retired `deepseek-chat`, `deepseek-reasoner`, or legacy Flash aliases.
+
+Official pricing as checked 2026-11-20:
+- Peak input cache miss: $0.30 / 1M; peak input cache hit: $0.006 / 1M; peak output: $1.20 / 1M.
+- Off-peak rates are half the peak rates.
+- Budget caps use peak cache-miss input rates and therefore do not assume caching or off-peak execution.
+- See [DeepSeek Models & Pricing](https://api-docs.deepseek.com/quick_start/pricing/) and [Chat Completions API](https://api-docs.deepseek.com/api/create-chat-completion/).
+
+The prior OpenAI/GPT-4.1 and GPT-6 Luna price comparisons are historical only and do not define the active experiment configuration. This model selection does **not** authorize paid API calls. G4 remains NOT STARTED until the user explicitly approves the paid smoke after all preflight gates pass.

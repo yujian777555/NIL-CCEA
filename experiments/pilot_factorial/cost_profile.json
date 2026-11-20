@@ -1,8 +1,39 @@
 {
-  "status": "user_supplied_rate_profile_requires_endpoint_verification",
+  "status": "deepseek_flash_selected_no_paid_run_approval",
   "provider": "deepseek",
   "agent_model": "deepseek-flash",
   "user_model": "deepseek-flash",
+  "module_models": {
+    "planner": "deepseek-flash",
+    "selector": "deepseek-flash",
+    "caller": "deepseek-flash",
+    "synthesizer": "deepseek-flash"
+  },
+  "model_alias": "deepseek-flash",
+  "model_version_as_of_2026_11_20": "DeepSeek-V4.1-Flash-1017",
+  "model_version_pinning": "API accepts the mutable alias deepseek-flash; record response.model and system_fingerprint on every request and detect backend drift.",
+  "api": {
+    "format": "OpenAI-compatible Chat Completions",
+    "base_url": "https://api.deepseek.com",
+    "endpoint": "/chat/completions"
+  },
+  "decoding": {
+    "temperature": 0,
+    "thinking": {
+      "type": "disabled"
+    },
+    "reasoning_effort": "none",
+    "response_format": {
+      "type": "json_object"
+    },
+    "system_instruction": "Return valid JSON only.",
+    "max_tokens": 512
+  },
+  "network": {
+    "policy": "direct_no_system_proxy",
+    "httpx_trust_env": false,
+    "note": "Configure a dedicated DeepSeek HTTP client with trust_env=false. Do not change global proxy settings."
+  },
   "primary_evaluator": "ENV",
   "max_steps_per_episode": 30,
   "max_agent_requests_per_episode": 30,
@@ -13,19 +44,45 @@
     "output": 512
   },
   "declared_rate_profile_usd_per_million_tokens": {
-    "input": 0.30,
-    "output": 1.20
+    "input": 0.3,
+    "output": 1.2,
+    "input_cache_hit": 0.006,
+    "input_cache_miss_peak": 0.3,
+    "input_cache_hit_peak": 0.006,
+    "output_peak": 1.2,
+    "input_cache_miss_off_peak": 0.15,
+    "input_cache_hit_off_peak": 0.003,
+    "output_off_peak": 0.6
+  },
+  "pricing_verification": {
+    "verified_on": "2026-11-20",
+    "source": "Official DeepSeek API Models & Pricing",
+    "pricing_url": "https://api-docs.deepseek.com/quick_start/pricing/",
+    "peak_hours_utc": "01:00-04:00 and 06:00-10:00, Monday-Friday, excluding Chinese public holidays",
+    "budget_basis": "Peak rates and cache-miss input pricing; conservative upper bound independent of run time/cache hit rate.",
+    "model_features": [
+      "JSON Output",
+      "Tool Calls"
+    ],
+    "note": "Provider prices may change; recheck immediately before a paid run."
   },
   "derived_upper_bounds_usd": {
-    "per_episode_no_retry": 0.48576,
-    "exploratory_64_episodes_no_retry": 31.08864,
-    "exploratory_64_episodes_with_one_retry": 62.17728,
-    "pilot_384_episodes_no_retry": 186.53184,
-    "pilot_384_episodes_with_one_retry": 373.06368
+    "per_request_peak_cache_miss": 0.0012144,
+    "per_episode_no_retry": 0.072864,
+    "exploratory_64_episodes_no_retry": 4.663296,
+    "exploratory_64_episodes_with_one_retry_on_every_request": 9.326592,
+    "pilot_384_episodes_no_retry": 27.979776,
+    "pilot_384_episodes_with_one_retry_on_every_request": 55.959552
   },
   "hard_caps_usd": {
-    "exploratory": 80.0,
-    "pilot": 400.0
+    "exploratory": 80,
+    "pilot": 400
   },
-  "real_api_calls_started": 0
+  "prior_provider_audit": {
+    "provider": "openai",
+    "model": "gpt-4.1-2025-04-14",
+    "state": "historical_only_not_selected"
+  },
+  "real_api_calls_started": 0,
+  "paid_smoke_approval": "NOT_GRANTED"
 }

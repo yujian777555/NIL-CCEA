@@ -1,51 +1,63 @@
 # Next Steps
 
-**Current task:** execute [Phase 0C DeepSeek Flash integration and real tau2 chain](docs/EXECUTOR_PROMPT_PHASE0C.md).
+**Current task:** execute [Phase 0C DeepSeek Flash integration and real-runner readiness](docs/EXECUTOR_PROMPT_PHASE0C.md).
 
-## Review baseline
+## Frozen model decision
 
-- Phase 0A branch: `phase0a-literature-environment-audit`
-- Phase 0A HEAD: `6bed028a4675a75928734b633bbfae49d6b98b14`
-- PR #1: open, not merged
-- Phase 0B branch: `phase0b-adapter-statistical-corrections`
-- Review: [docs/PHASE0A_INDEPENDENT_REVIEW.md](docs/PHASE0A_INDEPENDENT_REVIEW.md)
+User-selected model: `deepseek-flash` for Planner, Selector, Caller, Synthesizer, Agent, and User Simulator.
+
+- Base URL: `https://api.deepseek.com`
+- Current served model as of 2026-11-20: DeepSeek-V4.1-Flash-1017; capture returned model and system fingerprint because the alias is mutable.
+- Thinking/CoT disabled: `thinking={"type":"disabled"}`, `reasoning_effort="none"`.
+- JSON mode for structured content; native Tool Calls for Caller; validate locally.
+- Temperature 0.0; max output 512; input cap 2,000.
+- Direct network only; dedicated HTTPX client `trust_env=false`; no system proxy.
+- Key from `DEEPSEEK_API_KEY`; never store in Git.
+- Do not use GPT-4.1, GPT-6 Luna, deepseek-v4-pro, or retired DeepSeek model aliases.
+
+## Conservative DeepSeek cost ceilings
+
+Peak cache-miss rates: $0.30/M input, $1.20/M output; cache-hit peak $0.006/M; off-peak half. Budget on peak cache-miss:
+- $0.0012144/request
+- $0.072864/episode
+- $4.663296/64-episode smoke; $9.326592 if every request retries once
+- $27.979776/384-episode pilot; $55.959552 if every request retries once
+
+Keep $80 smoke and $400 pilot hard caps. Recheck pricing before any paid call.
 
 ## Phase 0C progress
 
-- DeepSeek client, four real modules, and real tau2 factorial runner are implemented.
-- Fake Client coverage and real tau2 no-API integration coverage pass with 29 tests.
-- No DeepSeek request has been sent.
+- DeepSeek client, four provider-backed modules, and the real tau2 factorial runner are implemented.
+- Fake Client and real tau2 no-API tests pass. No DeepSeek request has been sent.
 
-## Required execution order
+## Required order
 
-1. Verify `deepseek-flash` model availability and pricing against `experiments/pilot_factorial/cost_profile.json`.
-2. Ask for explicit approval before any paid DeepSeek request.
-3. Run the frozen 2-task × 2-seed × 16-configuration exploratory smoke.
-4. Preserve every trajectory, manifest, retry, failure, and cost event.
-5. Reassess task-level variance and power sensitivity before formal pilot approval.
+1. Recheck DeepSeek endpoint, model availability, and pricing.
+2. Establish GitHub Actions CI result.
+3. Obtain independent review of the client and runner.
+4. Ask for explicit paid-smoke approval only after all preflight gates pass.
 
-## Research guardrails
+## Hard guardrails
 
-- Do not repeat the Phase 0A literature audit or the already-passing pure mock smoke unless a targeted regression requires it.
-- Do not merge PR #1 until blockers are corrected and independently reviewed.
-- Do not make paid API calls before explicit user approval.
-- Treat the task instance, not task × seed, as the independent statistical cluster.
-- Never silently drop incomplete factorial contexts or failed episodes.
-- Keep exploratory smoke data separate from confirmatory pilot data.
-- Do not change endpoint, delta, task IDs, or sample size after observing confirmatory results.
-- A null pairwise interaction is a diagnosis trigger, not a project stop condition.
-- Keep NIL-CCEA isolated from other repositories.
-- Do not implement the full optimizer or base-model training in this phase.
+- No paid API call without explicit user approval.
+- Model choice is already made; do not ask the user to choose GPT-4.1 or GPT-6 Luna again.
+- No model mixing within a factorial dataset.
+- No CoT/thinking mode.
+- JSON outputs must be validated; never trust raw model tool arguments.
+- DeepSeek requests must bypass the system proxy.
+- Do not implement the full evolutionary optimizer before trustworthy interaction measurements.
+- Preserve all failures, retries, raw trajectories, manifests and costs.
+- Two exploratory task clusters are descriptive only.
+- Null/weak interaction triggers diagnosis and further experiments, not automatic termination or fabricated positive results.
 
-## Acceptance gates
+## Gate status
 
 | Gate | State |
 |---|---|
 | G0 Literature | PASS |
-| G1 Environment | PASS at source level |
-| G2 Contracts/protocol | NEEDS_REVISION pending DeepSeek pricing verification |
-| G3 Mock/tau2 no-API smoke | PASS |
-| G4 Pilot | NOT STARTED |
+| G1 Environment | PASS for tested scope |
+| G2 Contracts/protocol | NEEDS_REVISION |
+| G3 No-API integration | Existing tau2 tests PASS; DeepSeek request-contract tests pending |
+| G3 Real-runner readiness | BLOCKED |
+| G4 Paid exploratory smoke | NOT STARTED |
 | G5 Search | NOT STARTED |
-
-Do not mark G2 or G3 fully passed without committed tests and reproducible evidence.
