@@ -9,6 +9,7 @@ try:
     from nil_ccea.factorial import generate_binary_configurations
     from nil_ccea.manifest import SLOTS
     from nil_ccea.mock_modules import build_mock_modules
+    from nil_ccea.tau2_runner import Tau2FactorialRunner
     from nil_ccea.tau2_adapter import InvalidToolCallError, build_tau2_agent_class
 
     TAU2_AVAILABLE = True
@@ -98,6 +99,35 @@ class Tau2RealNoApiTests(unittest.TestCase):
         with self.assertRaises(InvalidToolCallError):
             self.agent.generate_next_message(UserMessage.text("lookup"), self.agent.get_init_state())
 
+    def test_caller_is_not_called_for_respond_or_stop(self):
+        calls = []
+
+        class RespondSelector:
+            module_version = "selector.respond"
+
+            def select(self, context, plan):
+                return Selection("respond", None, "g0", "response_needed", self.module_version)
+
+        class CountingCaller:
+            module_version = "caller.counting"
+
+            def propose(self, context, plan, selection):
+                calls.append(selection.kind)
+                raise AssertionError("Caller must not run for respond")
+
+        self.agent.selector = RespondSelector()
+        self.agent.caller = CountingCaller()
+        self.agent.generate_next_message(UserMessage.text("respond"), self.agent.get_init_state())
+        self.assertEqual(calls, [])
+
+        class StopSelector(RespondSelector):
+            def select(self, context, plan):
+                return Selection("stop", None, "g0", "done", self.module_version)
+
+        self.agent.selector = StopSelector()
+        self.agent.generate_next_message(UserMessage.text("stop"), self.agent.get_init_state())
+        self.assertEqual(calls, [])
+
     def test_real_orchestrator_multiturn_tool_trajectory_without_api(self):
         class ScriptedUser:
             def get_init_state(self, message_history=None):
@@ -111,9 +141,11 @@ class Tau2RealNoApiTests(unittest.TestCase):
 
             def generate_next_message(self, message, state):
                 state["turns"] += 1
+                if state["turns"] == 1:
+                    return UserMessage.text("list users"), state
                 if message is not None and getattr(message, "is_tool_call", lambda: False)():
                     return UserMessage.text("done ###STOP###"), state
-                return UserMessage.text("list users"), state
+                return UserMessage.text("done ###STOP###"), state
 
         class Planner:
             module_version = "planner.orch"
@@ -197,6 +229,82 @@ class Tau2RealNoApiTests(unittest.TestCase):
             if expected_schemas is None:
                 expected_schemas = schemas
             self.assertEqual(schemas, expected_schemas)
+
+    def test_real_tau2_factorial_runner_writes_all_cells_without_api(self):
+        class ScriptedUser:
+            def get_init_state(self, message_history=None):
+                return {"turns": 0}
+
+            def set_seed(self, seed):
+                return None
+
+            def stop(self, message=None, state=None):
+                return None
+
+            def generate_next_message(self, message, state):
+                state["turns"] += 1
+                if state["turns"] == 1:
+                    return UserMessage.text("list users"), state
+                if message is not None and getattr(message, "is_tool_call", lambda: False)():
+                    return UserMessage.text("done ###STOP###"), state
+                return UserMessage.text("done ###STOP###"), state
+
+        class RunnerPlanner:
+            module_version = "planner.runner"
+
+            def plan(self, context):
+                return Plan(
+                    ({"goal_id": "g0", "description": "list users", "prerequisites": ()},),
+                    "done",
+                    (),
+                    self.module_version,
+                )
+
+        class RunnerSelector:
+            module_version = "selector.runner"
+
+            def select(self, context, plan):
+                if context.plan_state.get("public_state_ready"):
+                    return Selection("respond", None, "g0", "response_needed", self.module_version)
+                return Selection("tool_call", "get_users", "g0", "schema_match", self.module_version)
+
+        class RunnerCaller:
+            module_version = "caller.runner"
+
+            def propose(self, context, plan, selection):
+                return ToolCallProposal(selection.tool_name or "", {}, True, (), self.module_version)
+
+        class RunnerSynthesizer:
+            module_version = "synthesizer.runner"
+
+            def synthesize(self, context, plan, selection, tool_result):
+                return "已读取公开用户列表。"
+
+        def runner_modules(configuration):
+            return {
+                "planner": RunnerPlanner(),
+                "selector": RunnerSelector(),
+                "caller": RunnerCaller(),
+                "synthesizer": RunnerSynthesizer(),
+            }
+
+        runner = Tau2FactorialRunner(
+            tau2_source_commit="fc0055dc4e0a316c3f83133267fbd6faaa770992",
+            task_version="v1.0.1",
+            environment_factory=get_environment,
+            user_factory=lambda task: ScriptedUser(),
+            module_factory=runner_modules,
+            max_steps=5,
+            evaluate=False,
+        )
+        records = runner.run([get_tasks()[0]], seeds=(0, 1))
+        self.assertEqual(len(records), 32)
+        self.assertEqual(
+            len({(record["seed"], record["configuration_id"]) for record in records}),
+            32,
+        )
+        self.assertTrue(all(record["mode"] == "tau2-text-v1" for record in records))
+        self.assertTrue(all(record["status"] == "success" for record in records))
 
 
 if __name__ == "__main__":

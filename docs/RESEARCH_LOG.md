@@ -71,3 +71,11 @@
 - Corrected the tau2 adapter against real v1.0.1 classes. Tool schemas now come from `openai_schema`, arguments are validated through `params`, Selector/Caller mismatches fail closed, tool and multi-tool messages update public state, metadata and seed are injected, and invalid calls raise typed errors.
 - Added real tau2 no-API tests for 16 permission-invariant configurations, schema validation, multi-turn tool execution, state recovery, manifest metadata, and Orchestrator trajectories.
 - No paid API calls were made. Exploratory and formal cost caps are recorded in `docs/PHASE0B_PROTOCOL_FREEZE.md` and `experiments/pilot_factorial/cost_profile.json`.
+
+## 2026-11-20 — Phase 0C DeepSeek integration chain
+
+- Added `deepseek_client.py` with direct HTTPX transport, `trust_env=False`, JSON and native tool-call modes, usage/cost accounting, model fingerprint tracking, classified errors, audit events, and bounded retry behavior.
+- Added `deepseek_modules.py` for Planner, Selector, Caller, and Synthesizer under the existing contracts. Caller uses native tool calls and adapter-side tau2 schema validation.
+- Added `tau2_runner.py` for real tau2 Orchestrator factorial execution, fresh environment instances, manifest binding, trajectory serialization, and optional ENV evaluation.
+- Added 29 host-side Phase 0C tests and expanded pinned tau2 no-API integration to 29 passing tests. The no-API run exercised 16 configuration permission invariance and 32 real tau2 Orchestrator episodes with local modules.
+- DeepSeek API calls remain at zero. The next paid action remains gated on model availability, current price verification, and explicit user approval.

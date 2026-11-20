@@ -1,8 +1,8 @@
 {
-  "status": "rate_profile_requires_provider_verification",
-  "provider": "openai",
-  "agent_model": "gpt-4.1-2025-04-14",
-  "user_model": "gpt-4.1-2025-04-14",
+  "status": "user_supplied_rate_profile_requires_endpoint_verification",
+  "provider": "deepseek",
+  "agent_model": "deepseek-flash",
+  "user_model": "deepseek-flash",
   "primary_evaluator": "ENV",
   "max_steps_per_episode": 30,
   "max_agent_requests_per_episode": 30,
@@ -13,8 +13,8 @@
     "output": 512
   },
   "declared_rate_profile_usd_per_million_tokens": {
-    "input": 2.0,
-    "output": 8.0
+    "input": 0.30,
+    "output": 1.20
   },
   "derived_upper_bounds_usd": {
     "per_episode_no_retry": 0.48576,

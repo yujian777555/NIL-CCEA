@@ -1,6 +1,6 @@
 # Next Steps
 
-**Current task:** execute [Phase 0B adapter and estimator corrections](docs/EXECUTOR_PROMPT_PHASE0B.md).
+**Current task:** execute [Phase 0C DeepSeek Flash integration and real tau2 chain](docs/EXECUTOR_PROMPT_PHASE0C.md).
 
 ## Review baseline
 
@@ -10,10 +10,16 @@
 - Phase 0B branch: `phase0b-adapter-statistical-corrections`
 - Review: [docs/PHASE0A_INDEPENDENT_REVIEW.md](docs/PHASE0A_INDEPENDENT_REVIEW.md)
 
+## Phase 0C progress
+
+- DeepSeek client, four real modules, and real tau2 factorial runner are implemented.
+- Fake Client coverage and real tau2 no-API integration coverage pass with 29 tests.
+- No DeepSeek request has been sent.
+
 ## Required execution order
 
-1. Verify provider pricing against `experiments/pilot_factorial/cost_profile.json`.
-2. Ask for explicit approval before any paid exploratory tau2 smoke.
+1. Verify `deepseek-flash` model availability and pricing against `experiments/pilot_factorial/cost_profile.json`.
+2. Ask for explicit approval before any paid DeepSeek request.
 3. Run the frozen 2-task × 2-seed × 16-configuration exploratory smoke.
 4. Preserve every trajectory, manifest, retry, failure, and cost event.
 5. Reassess task-level variance and power sensitivity before formal pilot approval.
@@ -37,8 +43,8 @@
 |---|---|
 | G0 Literature | PASS |
 | G1 Environment | PASS at source level |
-| G2 Contracts/protocol | BLOCKED pending Phase 0B corrections |
-| G3 Mock smoke | PASS for mock scope; tau2 no-key integration pending |
+| G2 Contracts/protocol | NEEDS_REVISION pending DeepSeek pricing verification |
+| G3 Mock/tau2 no-API smoke | PASS |
 | G4 Pilot | NOT STARTED |
 | G5 Search | NOT STARTED |
 

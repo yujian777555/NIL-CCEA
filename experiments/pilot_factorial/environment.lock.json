@@ -13,7 +13,14 @@
     "task_split": "test",
     "seeds": [0, 1],
     "primary_endpoint": "environment_reward",
-    "evaluation_type": "ENV"
+    "evaluation_type": "ENV",
+    "provider": "deepseek",
+    "model": "deepseek-flash",
+    "service_version": "DeepSeek-V4.1-Flash-1017",
+    "base_url": "https://api.deepseek.com",
+    "temperature": 0.0,
+    "max_output_tokens": 512,
+    "thinking": false
   },
   "runner": {
     "package": "nil-ccea",

@@ -182,14 +182,6 @@ def build_tau2_agent_class():
                 "module_version": plan.module_version,
             }
             selection = self.selector.select(context, plan)
-            proposal = self.caller.propose(context, plan, selection)
-            state.module_events.extend(
-                [
-                    {"module": "planner", "version": plan.module_version},
-                    {"module": "selector", "version": selection.module_version},
-                    {"module": "caller", "version": proposal.module_version},
-                ]
-            )
             state.plan_state["last_selection"] = {
                 "kind": selection.kind,
                 "tool_name": selection.tool_name,
@@ -198,6 +190,14 @@ def build_tau2_agent_class():
                 "module_version": selection.module_version,
             }
             if selection.kind == "tool_call":
+                proposal = self.caller.propose(context, plan, selection)
+                state.module_events.extend(
+                    [
+                        {"module": "planner", "version": plan.module_version},
+                        {"module": "selector", "version": selection.module_version},
+                        {"module": "caller", "version": proposal.module_version},
+                    ]
+                )
                 if selection.tool_name is None:
                     raise InvalidToolCallError("Selector 返回 tool_call 但没有 tool_name")
                 if proposal.tool_name != selection.tool_name:
@@ -216,6 +216,12 @@ def build_tau2_agent_class():
                 )
                 response = AssistantMessage(role="assistant", tool_calls=[tool_call])
             elif selection.kind in {"respond", "stop"}:
+                state.module_events.extend(
+                    [
+                        {"module": "planner", "version": plan.module_version},
+                        {"module": "selector", "version": selection.module_version},
+                    ]
+                )
                 content = self.synthesizer.synthesize(
                     context, plan, selection, tool_results[-1] if tool_results else None
                 )
