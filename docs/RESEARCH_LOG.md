@@ -84,3 +84,15 @@
 - PR #2 remains open and unmerged. GitHub reports zero status checks/check runs for its current head. No paid API calls were made.
 - Added Phase 0C handoff requirements. G2 remains NEEDS_REVISION; real-runner readiness is BLOCKED; G4 remains NOT STARTED.
 
+## 2026-11-20 — User selects DeepSeek Flash for NIL-CCEA
+
+- User explicitly selected `deepseek-flash` instead of the previously discussed OpenAI models.
+- Decision applies uniformly to Planner, Selector, Caller, Synthesizer, Agent, and User Simulator. No mixed-model factorial datasets.
+- Official DeepSeek docs identify the alias as serving DeepSeek-V4.1-Flash-1017 as of this date; because the alias is mutable, capture response model and system fingerprint on every request.
+- Fixed API configuration: OpenAI-compatible Chat Completions at `https://api.deepseek.com`; thinking/CoT disabled; JSON mode for structured outputs; temperature 0.0; output cap 512.
+- DeepSeek requests must bypass the system proxy via a dedicated HTTP client with `trust_env=false`; do not change global proxy settings.
+- Verified official peak rates: $0.30/M input cache miss, $0.006/M input cache hit, $1.20/M output; off-peak rates are half. Budget upper bounds use peak cache-miss rates.
+- New conservative estimates: $0.0012144/request; $0.072864/episode; $4.663296 for 64-episode smoke; $9.326592 with one retry on every request; $27.979776 for 384-episode pilot; $55.959552 with one retry on every request.
+- Model selection is not paid-run approval. No API call was made; paid smoke remains NOT STARTED.
+- Phase 0C now targets DeepSeek client/request-contract integration, four provider-backed modules, real tau2 runner, Caller control-flow correction, and no-key tests.
+

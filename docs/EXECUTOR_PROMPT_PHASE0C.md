@@ -2,7 +2,7 @@
 
 Repository: https://github.com/yujian777555/NIL-CCEA  
 Branch: `phase0b-adapter-statistical-corrections`  
-Starting HEAD: `0031055c14ac50dec9d6436e3d35659897d02016`  
+Starting HEAD: `8d6aeae3af39487c7d0fa390ec3d88b0f030b03d`  
 PR #2: https://github.com/yujian777555/NIL-CCEA/pull/2  
 Review: `docs/PHASE0B1_PRICING_AND_SMOKE_READINESS_REVIEW.md`
 
@@ -20,27 +20,45 @@ Complete the remaining pre-smoke engineering and protocol corrections so that NI
 4. Keep NIL-CCEA isolated from all other repositories.
 5. Keep the exact tau2 commit `fc0055dc4e0a316c3f83133267fbd6faaa770992`.
 
-## 1. Provider price and model lifecycle
+## 1. User-selected provider and model — DeepSeek Flash
 
-The OpenAI official GPT-4.1 model page confirms standard input $2/M, cached input $0.50/M, output $8/M. The current cost profile uses the conservative uncached $2/$8 rates.
+The user has explicitly selected **DeepSeek Flash**. This selection supersedes the earlier GPT-4.1 / GPT-6 Luna discussion.
 
-However, `gpt-4.1-2025-04-14` is deprecated, with published shutdown date 2027-01-14. OpenAI lists `gpt-6-luna` as its recommended replacement.
+Official references:
+- Models & Pricing: https://api-docs.deepseek.com/quick_start/pricing/
+- Chat Completions: https://api-docs.deepseek.com/api/create-chat-completion/
+- First API Call: https://api-docs.deepseek.com/quick_start/
 
-Reference URLs:
-- https://developers.openai.com/api/docs/models/gpt-4.1
-- https://developers.openai.com/api/docs/deprecations
-- https://developers.openai.com/api/docs/models/gpt-6-luna
+Fixed model configuration:
+- Provider: DeepSeek.
+- Requested model alias: `deepseek-flash` for Agent, User Simulator, Planner, Selector, Caller, and Synthesizer.
+- Current served model as of 2026-11-20: DeepSeek-V4.1-Flash-1017. The API alias is mutable, so capture response `model` and `system_fingerprint` on every request.
+- Base URL: `https://api.deepseek.com`; use OpenAI-compatible Chat Completions.
+- Thinking/CoT MUST be disabled using `thinking={"type":"disabled"}` and `reasoning_effort="none"`.
+- Structured JSON responses MUST use `response_format={"type":"json_object"}` and an explicit prompt instruction to return JSON. Caller should use native function Tool Calls; parse and validate arguments locally against the selected tau2 tool schema.
+- Temperature: 0.0; max output: 512 tokens; declared input cap: 2,000 tokens.
+- Direct connection only. Use a dedicated HTTPX client with `trust_env=False` (or equivalent) so DeepSeek bypasses system proxy environment variables. Do not change global proxy settings.
+- Read `DEEPSEEK_API_KEY` from environment/secret storage only. Never commit, print, or log the key.
+- Do not use `deepseek-v4-pro`, `deepseek-chat`, `deepseek-reasoner`, or legacy Flash aliases.
 
-GPT-6 Luna's standard prices are $0.10/M input, $0.50/M output. Chat Completions function calling requires `reasoning_effort=none`.
+Pricing checked against the official DeepSeek page on 2026-11-20:
+- Peak input cache miss: $0.30 / 1M tokens; peak cache hit: $0.006 / 1M; peak output: $1.20 / 1M.
+- Off-peak prices are half the peak rates.
+- Peak UTC schedule: weekdays 01:00–04:00 and 06:00–10:00, excluding Chinese public holidays.
+- Use peak cache-miss rates for conservative budget ceilings: $0.0012144 per request, $0.072864 per episode, $4.663296 per 64-episode smoke, $9.326592 if every smoke request is retried once, $27.979776 per 384-episode pilot, and $55.959552 if every pilot request is retried once.
+- Preserve the existing $80 smoke and $400 pilot hard caps unless a separately reviewed change is required.
 
-Actions:
-- Preserve the verified GPT-4.1 price record and the lifecycle warning in `cost_profile.json`.
-- Do not silently change the active model.
-- Prepare a model-switch compatibility patch/config proposal for GPT-6 Luna, including explicit `reasoning_effort=none`, LiteLLM model ID, request/response parsing, tool-call schema, and no-key tests.
-- Do not mix models inside a factorial dataset.
-- Ask the user to approve one of two choices before the paid smoke: (A) keep GPT-4.1 and complete the planned runs before 2027-01-14; or (B) migrate both Agent and User Simulator to GPT-6 Luna before any real run.
-- If the user has not chosen, leave the active model unchanged and stop before any paid request.
+Implementation requirements:
+1. Update active model/cost config and all protocol/handoff docs to DeepSeek Flash.
+2. Add an explicit DeepSeek client adapter using the OpenAI-compatible API. Ensure its HTTP client bypasses system proxies without modifying global proxy state.
+3. Add no-key tests that inspect request construction: exact model alias, base URL, thinking disabled, reasoning_effort none, JSON mode, temperature, token cap, and direct-connection client configuration.
+4. Add no-key tests for JSON parsing, function Tool Calls, malformed JSON, missing tool calls, invalid schema arguments, and empty JSON-mode content.
+5. Log requested model alias, returned model, system fingerprint, request ID, prompt hash, decoding, token usage, retry and cost. If the returned model changes during a run, stop and quarantine the run; do not mix backend versions.
+6. Keep the model the same for all four module slots and User Simulator.
+7. Do not make any real API request during Phase 0C. Model selection is approved; paid smoke execution is not.
 
+The earlier OpenAI pricing/deprecation comparison is historical only and is no longer an active model-choice question.
+ 
 ## 2. Fix adapter control flow
 
 In `src/nil_ccea/tau2_adapter.py`, Caller is currently invoked before checking `selection.kind`.

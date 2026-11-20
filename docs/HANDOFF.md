@@ -2,51 +2,60 @@
 
 **Repository:** https://github.com/yujian777555/NIL-CCEA  
 **Branch:** `phase0b-adapter-statistical-corrections`  
-**HEAD:** `0031055c14ac50dec9d6436e3d35659897d02016`  
-**PR #2:** https://github.com/yujian777555/NIL-CCEA/pull/2 (open; base = `phase0a-literature-environment-audit`)  
+**Base SHA for this handoff:** `8d6aeae3af39487c7d0fa390ec3d88b0f030b03d`  
+**PR #2:** https://github.com/yujian777555/NIL-CCEA/pull/2 (open)  
 **PR #1:** https://github.com/yujian777555/NIL-CCEA/pull/1 (open)  
-**Authoritative prompt:** [docs/EXECUTOR_PROMPT_PHASE0C.md](EXECUTOR_PROMPT_PHASE0C.md)  
-**Review:** [docs/PHASE0B1_PRICING_AND_SMOKE_READINESS_REVIEW.md](PHASE0B1_PRICING_AND_SMOKE_READINESS_REVIEW.md)
+**Authoritative prompt:** [docs/EXECUTOR_PROMPT_PHASE0C.md](EXECUTOR_PROMPT_PHASE0C.md)
+
+## User-selected model
+
+**Use DeepSeek Flash exclusively** for all module slots, Agent, and User Simulator:
+- API model alias: `deepseek-flash`
+- Current served model as of 2026-11-20: DeepSeek-V4.1-Flash-1017; alias is mutable.
+- OpenAI-compatible Chat Completions, base URL `https://api.deepseek.com`.
+- Disable thinking/CoT: `thinking={"type":"disabled"}`, `reasoning_effort="none"`.
+- JSON mode for structured content; Caller uses native Tool Calls and local schema validation.
+- Temperature 0.0; max output 512; input cap 2,000.
+- Direct connection: dedicated HTTPX client with `trust_env=false`, bypass system proxy.
+- Read `DEEPSEEK_API_KEY` from environment; never commit secrets.
+- Record requested model, response model, system fingerprint, request ID, prompt hash and usage.
+
+Official docs:
+- https://api-docs.deepseek.com/quick_start/pricing/
+- https://api-docs.deepseek.com/api/create-chat-completion/
+
+## Conservative cost profile
+
+Peak cache-miss prices: $0.30/M input and $1.20/M output; peak cache-hit input $0.006/M; off-peak prices half. Budget uses peak cache-miss rates:
+- Request $0.0012144
+- Episode $0.072864
+- Smoke 64 episodes $4.663296; full retry upper bound $9.326592
+- Pilot 384 episodes $27.979776; full retry upper bound $55.959552
+
+Hard caps: $80 smoke, $400 pilot. Recheck price before paid run.
 
 ## Research state
 
-Phase 0A literature/environment audit and Phase 0B estimator/tau2 no-API corrections are reported complete. No real tau2 benchmark episode, paid API call, statistical significance, performance gain, or novelty claim exists.
+Phase 0A and Phase 0B are reported complete. No real tau2 benchmark episode, paid API call, statistical significance, performance gain, or novelty claim exists.
 
-## Pricing and lifecycle
+## Remaining work
 
-As checked on 2026-11-20, GPT-4.1 standard API rates are $2/M input, $0.50/M cached input, and $8/M output. Existing budget arithmetic is correct and uses the conservative uncached rate.
+1. Fix Caller control flow; only invoke for `tool_call`.
+2. Implement DeepSeek Flash-backed Planner/Selector/Caller/Synthesizer.
+3. Implement real tau2 factorial runner for all 16 configurations.
+4. Add fake-client no-key tests for direct transport, non-thinking JSON mode, tool calls, validation, token usage, and model fingerprint logging.
+5. Recompute `delta=0.05` task-level power/sensitivity.
+6. Update docs and CI; independent review.
+7. Obtain explicit paid-smoke approval only after preflight is complete.
 
-The configured snapshot `gpt-4.1-2025-04-14` is deprecated with shutdown date 2027-01-14. OpenAI recommends `gpt-6-luna`, whose standard rate is $0.10/M input and $0.50/M output. GPT-6 Luna Chat Completions function calling requires `reasoning_effort=none`.
-
-No model migration has been approved. Do not change the model or make a paid request until the user chooses.
-
-## Remaining pre-smoke blockers
-
-1. `tau2_adapter.py` invokes Caller before checking the selected action; Caller must run only for `tool_call`.
-2. Provider-backed module implementations do not exist; current modules are deterministic mocks.
-3. A real tau2 factorial runner does not exist; current runner emits mock episodes only.
-4. The intended `practical_delta=0.05` is not supported by the existing sensitivity table, which is for `delta=0.10`.
-5. Older protocol and README files contain stale descriptions.
-6. PR #2 has no GitHub status/check runs at the reviewed SHA.
-
-## Immediate actions
-
-Follow [Phase 0C prompt](EXECUTOR_PROMPT_PHASE0C.md):
-- fix Caller control flow and tests;
-- implement provider-backed module wrappers and tau2 factorial runner;
-- use fake clients for all no-key tests;
-- reconcile model lifecycle and practical delta;
-- update docs and CI;
-- request explicit approval before the 64-episode exploratory smoke.
-
-## Current gates
+## Gates
 
 - G0 Literature: PASS
-- G1 Environment: PASS for pinned tau2 source and reported no-key class integration
+- G1 Environment: PASS for tested scope
 - G2 Contracts/protocol: NEEDS_REVISION
-- G3 No-API integration: PASS for tested scope
+- G3 No-API integration: existing tau2 tests reported PASS; DeepSeek request-contract tests pending
 - G3 Real-runner readiness: BLOCKED
 - G4 Paid smoke: NOT STARTED
 - G5 Search: NOT STARTED
 
-Keep the project isolated from other repositories. Do not implement the full optimizer until real interaction measurement is trustworthy.
+The user has selected the model but has **not** authorized paid API calls. Keep this repository isolated from all other projects.

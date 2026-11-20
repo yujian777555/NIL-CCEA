@@ -134,3 +134,24 @@ PR #1 remains open and unmerged.
 ## Next action
 
 Execute `docs/EXECUTOR_PROMPT_PHASE0C.md`. Do not make any paid API call. The only user decision required before freezing the real-run configuration is the model lifecycle choice: retain GPT-4.1 temporarily or migrate both roles to GPT-6 Luna.
+
+## 8. Superseding user model decision — DeepSeek Flash (2026-11-20)
+
+After this review, the user explicitly selected **DeepSeek Flash**. This supersedes the earlier recommendation to choose between GPT-4.1 and GPT-6 Luna. The active model for Agent, User Simulator, Planner, Selector, Caller, and Synthesizer is now the DeepSeek API alias `deepseek-flash`.
+
+The official DeepSeek page identifies the current served model as DeepSeek-V4.1-Flash-1017, supports JSON Output and Tool Calls, and publishes peak rates of $0.30/M input cache miss, $0.006/M input cache hit, and $1.20/M output; off-peak rates are half. The alias is mutable, so every request must record response `model` and `system_fingerprint`.
+Sources:
+- https://api-docs.deepseek.com/quick_start/pricing/
+- https://api-docs.deepseek.com/api/create-chat-completion/
+
+Execution contract:
+- Thinking/CoT disabled: `thinking={"type":"disabled"}`, `reasoning_effort="none"`.
+- JSON mode enabled for structured JSON content responses; Caller uses native Tool Calls and local schema validation.
+- Temperature 0.0; max output 512; input cap 2,000.
+- Direct DeepSeek network connection using dedicated HTTPX client `trust_env=false`; bypass system proxy.
+- Use `DEEPSEEK_API_KEY` from environment only.
+- Conservative peak/cache-miss budget: $0.0012144/request; $0.072864/episode; $4.663296/64-episode smoke; $9.326592 with one retry on every request; $27.979776/384-episode pilot; $55.959552 with one retry on every request.
+- No paid API call has been approved. The user selected the model, not the paid run.
+
+This decision supersedes only the model/provider selection in this review. Adapter control flow, provider-backed modules, real tau2 runner, practical-delta sensitivity, CI, and independent review remain pre-smoke requirements.
+
