@@ -29,13 +29,13 @@ Keep $80 smoke and $400 pilot hard caps. Recheck pricing before any paid call.
 
 - DeepSeek client, four provider-backed modules, and the real tau2 factorial runner are implemented.
 - Fake Client and real tau2 no-API tests pass. No DeepSeek request has been sent.
+- GitHub Actions host workflow passes on head `26d905d8ccafbcad9384f49978ac8d846c3b526c`.
 
 ## Required order
 
 1. Recheck DeepSeek endpoint, model availability, and pricing.
-2. Establish GitHub Actions CI result.
-3. Obtain independent review of the client and runner.
-4. Ask for explicit paid-smoke approval only after all preflight gates pass.
+2. Obtain independent review of the client and runner.
+3. Ask for explicit paid-smoke approval only after all preflight gates pass.
 
 ## Hard guardrails
 
@@ -57,7 +57,7 @@ Keep $80 smoke and $400 pilot hard caps. Recheck pricing before any paid call.
 | G0 Literature | PASS |
 | G1 Environment | PASS for tested scope |
 | G2 Contracts/protocol | NEEDS_REVISION |
-| G3 No-API integration | Existing tau2 tests PASS; DeepSeek request-contract tests pending |
-| G3 Real-runner readiness | BLOCKED |
+| G3 No-API integration | PASS |
+| G3 Real-runner readiness | PASS for no-API scope |
 | G4 Paid exploratory smoke | NOT STARTED |
 | G5 Search | NOT STARTED |
