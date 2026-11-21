@@ -2,7 +2,7 @@
 
 **Repository:** https://github.com/yujian777555/NIL-CCEA
 **Branch:** `phase0b-adapter-statistical-corrections`
-**Base SHA for this handoff:** `4b9e21f7aed42b76a18b6ff0df2be876fec3850c`
+**Base SHA for this handoff:** `33db2fdf2603d6ba37975f82b3b9a9b0a90217b9`
 **PR #2:** https://github.com/yujian777555/NIL-CCEA/pull/2 (open)
 **PR #1:** https://github.com/yujian777555/NIL-CCEA/pull/1 (open)
 **Authoritative prompt:** [docs/EXECUTOR_PROMPT_PHASE0C.md](EXECUTOR_PROMPT_PHASE0C.md)
@@ -44,6 +44,7 @@ Phase 0A and Phase 0B are reported complete. Phase 0C client, modules, and no-AP
 - Four DeepSeek module wrappers and binary manifest variants.
 - Real tau2 factorial runner and 32-cell no-API Orchestrator test.
 - 29 total tests pass in host and independent tau2 environments.
+- GitHub Actions host workflow passes on final head `33db2fdf2603d6ba37975f82b3b9a9b0a90217b9`.
 - Self-review is recorded in `docs/PHASE0C_INDEPENDENT_REVIEW.md`; external independent review is still required.
 
 ## Remaining work

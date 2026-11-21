@@ -103,4 +103,4 @@
 - Added Fake Client tests, binary provider variant tests, CI workflow, and a reproducible real tau2 no-API test script.
 - Host suite passes 29 tests with tau2 tests skipped when external tau2 is absent. Python 3.12.16 tau2 suite passes all 29 tests. DeepSeek API calls remain 0.
 - Real-runner no-API test executes 32 task-seed-configuration cells using real tau2 Orchestrator classes and local modules. The full 64-episode paid smoke remains unstarted.
-- GitHub Actions Phase 0C host workflow passes on head `26d905d8ccafbcad9384f49978ac8d846c3b526c`.
+- GitHub Actions Phase 0C host workflow passes on final head `33db2fdf2603d6ba37975f82b3b9a9b0a90217b9`, run `44914720628`.

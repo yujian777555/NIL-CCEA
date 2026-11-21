@@ -4,7 +4,7 @@
 **Overall state:** PRE-EXPERIMENT
 **Current workstream:** Phase 0C — DeepSeek Flash provider integration and real-runner readiness
 **Active branch:** `phase0b-adapter-statistical-corrections`
-**Base SHA for this handoff:** `4b9e21f7aed42b76a18b6ff0df2be876fec3850c`
+**Base SHA for this handoff:** `33db2fdf2603d6ba37975f82b3b9a9b0a90217b9`
 **PR #2:** https://github.com/yujian777555/NIL-CCEA/pull/2 (open, not merged)
 **PR #1:** https://github.com/yujian777555/NIL-CCEA/pull/1 (open, not merged)
 **Authoritative next prompt:** [docs/EXECUTOR_PROMPT_PHASE0C.md](docs/EXECUTOR_PROMPT_PHASE0C.md)
@@ -54,6 +54,7 @@ Existing hard caps remain $80 exploratory and $400 pilot. Recheck prices immedia
 - DeepSeek Planner, Selector, Caller, and Synthesizer wrappers are implemented with two binary manifest variants each.
 - Real tau2 factorial runner is implemented and no-API tested over 32 task-seed-configuration cells with real tau2 Orchestrator classes.
 - GitHub Actions workflow is added for the no-API host test suite.
+- GitHub Actions Phase 0C tests pass on final head `33db2fdf2603d6ba37975f82b3b9a9b0a90217b9`, run `44914720628`.
 - Self-review is recorded in `docs/PHASE0C_INDEPENDENT_REVIEW.md`; an external independent review remains pending.
 
 ## Remaining pre-smoke blockers
