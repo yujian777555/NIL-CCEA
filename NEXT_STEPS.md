@@ -1,6 +1,6 @@
 # Next Steps
 
-**Current task:** execute [Phase 0C DeepSeek Flash integration and real-runner readiness](docs/EXECUTOR_PROMPT_PHASE0C.md).
+**Current task:** execute [Phase 0D independent audit, provider preflight, and paid-smoke readiness](docs/EXECUTOR_PROMPT_PHASE0D.md).
 
 ## Frozen model decision
 
@@ -29,7 +29,7 @@ Keep $80 smoke and $400 pilot hard caps. Recheck pricing before any paid call.
 
 - DeepSeek client, four provider-backed modules, and the real tau2 factorial runner are implemented.
 - Fake Client and real tau2 no-API tests pass. No DeepSeek request has been sent.
-- GitHub Actions host workflow passes on head `26d905d8ccafbcad9384f49978ac8d846c3b526c`.
+- GitHub Actions run `44914883210` passed on Phase 0C implementation head `f97467b8dcfb60a3d36cfd6638cd4e507509bc4a`.
 
 ## Required order
 
@@ -61,3 +61,31 @@ Keep $80 smoke and $400 pilot hard caps. Recheck pricing before any paid call.
 | G3 Real-runner readiness | PASS for no-API scope |
 | G4 Paid exploratory smoke | NOT STARTED |
 | G5 Search | NOT STARTED |
+
+
+## Phase 0D — immediate execution order
+
+1. Recheck the current branch/PR head and reproduce the 29-test no-API suite plus the pinned tau2 32-cell no-API integration.
+2. Obtain a genuinely independent review; PR #2 currently has no submitted review or review threads.
+3. Fix retry mismatch and remove whole-episode replay; persist request-level audit/cost events and partial trajectories.
+4. Enforce response model/fingerprint identity, input/request limits, and per-request/episode/smoke budget guards.
+5. Re-run no-API tests and CI. No provider endpoint request is allowed during Phase 0D.
+6. Freeze exploratory tasks retail 5 and airline 2 using the first-listed-per-family rule, after verifying both exist in the pinned test split.
+7. Produce an exact cost/request ceiling and ask the user for explicit approval. Wait; do not execute the 64-episode smoke without approval.
+
+Official docs rechecked 2026-11-23:
+- `deepseek-flash` is listed and served as DeepSeek-V4.1-Flash-1017.
+- Chat Completions: `https://api.deepseek.com`.
+- Peak cache-miss input $0.30/M, cache-hit input $0.006/M, output $1.20/M.
+- Public documentation does not substitute for checking the actual response model and fingerprint on the first approved completion.
+
+## Preliminary source-review items (must be independently confirmed and fixed)
+
+- Client retry default is 2 while the protocol allows one retry per request.
+- Runner retries whole episodes, risking duplicate paid requests.
+- Request audit events are not yet durably linked to episode artifacts.
+- Fingerprint tracking is not enforced in the request path and does not validate response.model.
+- Request/cost hard-stop enforcement and 2,000-token input enforcement need verification.
+- Runner exception paths can lose partial trajectories.
+
+Smoke task candidate: retail task 5 + airline task 2, selected deterministically as the first listed test task in each locked family. The 64-episode smoke is exploratory only (two task clusters); do not claim significance or use it as a reliable task-cluster power estimate.
