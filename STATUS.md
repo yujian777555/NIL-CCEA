@@ -2,20 +2,20 @@
 
 **Last updated:** 2026-11-23
 **Overall state:** PRE-EXPERIMENT
-**Current workstream:** Phase 0D — independent audit, provider preflight, and paid-smoke readiness
+**Current workstream:** Phase 0E — provider-backed User Simulator and final smoke preflight
 **Active branch:** `phase0b-adapter-statistical-corrections`
 **Phase 0C implementation baseline SHA:** `f97467b8dcfb60a3d36cfd6638cd4e507509bc4a`
-**Phase 0D current implementation SHA:** `7f07bbfd75927bb35a6cabd466799aded8c5fb57`
-**Latest GitHub Actions run:** `45046604660` — success
+**Phase 0D final implementation SHA:** `b1c197eb5973575ae2ffa7c5c4cfe0d0fc9bf3a9`
+**Latest Phase 0D GitHub Actions run:** `45046796585` — success
 **PR #2:** https://github.com/yujian777555/NIL-CCEA/pull/2 (open, not merged)
 **PR #1:** https://github.com/yujian777555/NIL-CCEA/pull/1 (open, not merged)
-**Authoritative next prompt:** [docs/EXECUTOR_PROMPT_PHASE0D.md](docs/EXECUTOR_PROMPT_PHASE0D.md)
+**Authoritative next prompt:** [docs/EXECUTOR_PROMPT_PHASE0E.md](docs/EXECUTOR_PROMPT_PHASE0E.md)
 
 ## User model decision
 
 The user explicitly selected **DeepSeek Flash**:
 - All four module slots and User Simulator use `deepseek-flash`.
-- Current served version per official docs on 2026-11-20: DeepSeek-V4.1-Flash-1017; alias is mutable, record response model and system fingerprint on every request.
+- Current served version per official docs rechecked 2026-11-23: DeepSeek-V4.1-Flash-1017; alias is mutable, record response model and system fingerprint on every request.
 - OpenAI-compatible Chat Completions at `https://api.deepseek.com`.
 - Thinking/CoT disabled (`thinking.type=disabled`, `reasoning_effort=none`).
 - JSON mode for structured content; native Tool Calls for Caller.
@@ -24,7 +24,7 @@ The user explicitly selected **DeepSeek Flash**:
 - Credentials from `DEEPSEEK_API_KEY` only.
 - GPT-4.1 and GPT-6 Luna are historical alternatives, not selected.
 
-## Provider pricing (2026-11-20)
+## Provider pricing (last rechecked 2026-11-23)
 
 Official DeepSeek price page:
 https://api-docs.deepseek.com/quick_start/pricing/
@@ -61,9 +61,9 @@ Existing hard caps remain $80 exploratory and $400 pilot. Recheck prices immedia
 
 ## Remaining pre-smoke blockers
 
-1. Review DeepSeek request contract against the current provider endpoint before any paid call.
-2. Obtain independent review of the DeepSeek client and real runner.
-3. Ask for explicit paid-smoke approval only after preflight gates pass.
+1. Replace the stock tau2 UserSimulator LiteLLM generation path with a provider-backed adapter using the NIL-CCEA DeepSeekClient and shared RequestBudget.
+2. Assess the open retail task 5 authentication-enforcement issue and record its impact; do not silently change the frozen task set.
+3. Re-run all no-API tests and CI, freeze a complete pre-run manifest, then obtain explicit user approval.
 
 ## Gate status
 
@@ -71,11 +71,13 @@ Existing hard caps remain $80 exploratory and $400 pilot. Recheck prices immedia
 |---|---|
 | G0 Literature | PASS |
 | G1 Environment | PASS for pinned tau2 and reported no-key integration |
-| G2 Contracts/protocol | NEEDS_REVISION |
-| G3 No-API integration | PASS | 29 tests pass with real tau2 classes and Fake Client |
-| G3 Real-runner readiness | PASS for no-API scope | 32 real tau2 Orchestrator cells run with local modules |
-| G4 Paid exploratory smoke | NOT STARTED |
-| G5 Search | NOT STARTED |
+| G2 Public provider docs | PASS, rechecked 2026-11-23 |
+| G2 User Simulator shared client/budget | NEEDS_REVISION |
+| G2 Retail task 5 issue impact | NEEDS_REVIEW |
+| G3 No-API integration | PASS, 34 tests in host and pinned tau2 environments |
+| G3 Real-runner readiness | PASS for no-API scope, 32 real tau2 Orchestrator cells |
+| G4 Paid exploratory smoke | NOT AUTHORIZED / NOT STARTED |
+| G5 Linkage-aware evolutionary search | NOT STARTED |
 
 No real benchmark performance, statistical significance, algorithmic improvement, or novelty claim is asserted. Model selection is not paid-run approval.
 
@@ -118,3 +120,16 @@ No real benchmark performance, statistical significance, algorithmic improvement
 | G5 Linkage-aware evolutionary search | NOT STARTED |
 
 The $80 smoke hard cap is a stop limit, not spending authorization. Current conservative 64-episode estimates ($4.663296 without retries; $9.326592 with one retry on every request) are valid only if the 2,000-input/512-output token limits and one-retry-per-request rule are enforced. No algorithmic improvement, statistical significance, or novelty claim is made.
+
+
+## 2026-11-23 — Phase 0E preflight findings
+
+- The reported Phase 0D final SHA is `b1c197eb5973575ae2ffa7c5c4cfe0d0fc9bf3a9`; GitHub PR #2 head matches. PR #2 remains open and unmerged.
+- Final Phase 0D GitHub Actions run `45046796585` succeeded on that SHA.
+- Official DeepSeek public documentation and pricing were rechecked 2026-11-23. Alias, published served version, endpoint, feature support, and prices are unchanged. Live account response model/fingerprint remain unverified.
+- Retail task 5 and airline task 2 are both in the pinned tau2 v1.0.1 test split. Retail task 5 metadata also contains open issue `issue_770466c1`: retail user-level actions may be possible without authentication even though the domain policy requires authentication. Impact on this smoke must be assessed before freezing the manifest; do not silently substitute a task.
+- Critical User Simulator integration finding: pinned tau2's stock `UserSimulator` calls tau2 `llm_utils.generate`, which calls LiteLLM `completion`. A model string `user.llm == deepseek-flash` does not prove use of NIL-CCEA's DeepSeekClient, shared RequestBudget, request ledger, fingerprint checks, or direct transport.
+- Phase 0E therefore requires a provider-backed tau2 half-duplex UserSimulator adapter/subclass that routes all user-simulator requests through the controlled DeepSeekClient, shares the same RequestBudget, and persists user request events.
+- Preflight review: [docs/PHASE0E_PREFLIGHT_REVIEW.md](docs/PHASE0E_PREFLIGHT_REVIEW.md).
+- Authoritative next prompt: [docs/EXECUTOR_PROMPT_PHASE0E.md](docs/EXECUTOR_PROMPT_PHASE0E.md).
+- No DeepSeek API request has been sent and no API key has been read. Paid smoke remains NOT AUTHORIZED / NOT STARTED.
