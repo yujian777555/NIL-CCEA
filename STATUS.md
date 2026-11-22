@@ -1,13 +1,13 @@
 # Project Status
 
-**Last updated:** 2026-11-20
+**Last updated:** 2026-11-23
 **Overall state:** PRE-EXPERIMENT
-**Current workstream:** Phase 0C — DeepSeek Flash provider integration and real-runner readiness
+**Current workstream:** Phase 0D — independent audit, provider preflight, and paid-smoke readiness
 **Active branch:** `phase0b-adapter-statistical-corrections`
-**Base SHA for this handoff:** `33db2fdf2603d6ba37975f82b3b9a9b0a90217b9`
+**Phase 0C implementation baseline SHA:** `f97467b8dcfb60a3d36cfd6638cd4e507509bc4a`
 **PR #2:** https://github.com/yujian777555/NIL-CCEA/pull/2 (open, not merged)
 **PR #1:** https://github.com/yujian777555/NIL-CCEA/pull/1 (open, not merged)
-**Authoritative next prompt:** [docs/EXECUTOR_PROMPT_PHASE0C.md](docs/EXECUTOR_PROMPT_PHASE0C.md)
+**Authoritative next prompt:** [docs/EXECUTOR_PROMPT_PHASE0D.md](docs/EXECUTOR_PROMPT_PHASE0D.md)
 
 ## User model decision
 
@@ -54,7 +54,7 @@ Existing hard caps remain $80 exploratory and $400 pilot. Recheck prices immedia
 - DeepSeek Planner, Selector, Caller, and Synthesizer wrappers are implemented with two binary manifest variants each.
 - Real tau2 factorial runner is implemented and no-API tested over 32 task-seed-configuration cells with real tau2 Orchestrator classes.
 - GitHub Actions workflow is added for the no-API host test suite.
-- GitHub Actions Phase 0C tests pass on final head `33db2fdf2603d6ba37975f82b3b9a9b0a90217b9`, run `44914720628`.
+- GitHub Actions Phase 0C tests pass on implementation head `f97467b8dcfb60a3d36cfd6638cd4e507509bc4a`, run `44914883210`.
 - Self-review is recorded in `docs/PHASE0C_INDEPENDENT_REVIEW.md`; an external independent review remains pending.
 
 ## Remaining pre-smoke blockers
@@ -76,3 +76,33 @@ Existing hard caps remain $80 exploratory and $400 pilot. Recheck prices immedia
 | G5 Search | NOT STARTED |
 
 No real benchmark performance, statistical significance, algorithmic improvement, or novelty claim is asserted. Model selection is not paid-run approval.
+
+
+## 2026-11-23 — Phase 0C closeout and Phase 0D handoff
+
+- Phase 0C implementation baseline: `f97467b8dcfb60a3d36cfd6638cd4e507509bc4a`.
+- GitHub Actions run `44914883210` completed successfully on the reported implementation head.
+- PR #2 remains open and unmerged. GitHub currently reports no submitted reviews, no inline review threads, and no PR comments; external independent review is still pending.
+- No DeepSeek API request or paid episode has been executed. The 29-test host/tau2 results and 32-cell Orchestrator run are no-API evidence only.
+- Official DeepSeek public docs were rechecked on 2026-11-23. They list `deepseek-flash`, served version DeepSeek-V4.1-Flash-1017, the OpenAI-compatible endpoint, JSON/Tool Calls, disabled-thinking controls, and the same published price profile. This is public-document verification, not a live response-model/fingerprint check.
+- A preliminary read-only source review identified items for independent confirmation and correction: retry count mismatch (client default 2 vs protocol 1), whole-episode replay after infrastructure failure, request audit events not durably linked to episodes, fingerprint tracker not enforced in the request path, missing request/cost budget enforcement, and loss of partial trajectory on exceptions.
+- The 2-task exploratory smoke candidate is family-balanced and deterministic: retail task 5 and airline task 2, selected as the first listed test task in each locked family. Verify both against the pinned test split and record the selection rule before any paid request.
+- Authoritative next prompt: [docs/EXECUTOR_PROMPT_PHASE0D.md](docs/EXECUTOR_PROMPT_PHASE0D.md).
+- Phase 0D is no-API only. It must fix and independently review preflight gaps, then request explicit user approval before any live DeepSeek request.
+
+### Updated gates
+
+| Gate | State |
+|---|---|
+| G0 Literature | PASS |
+| G1 Environment | PASS for pinned tau2 and reported no-API integration |
+| G2 Public provider docs | PASS on 2026-11-23 |
+| G2 Live returned model/fingerprint | NOT VERIFIED; requires first approved completion |
+| G2 Runner/accounting/retry contract | NEEDS_REVISION |
+| G3 No-API integration | PASS for reported test scope |
+| G3 Real-runner readiness | PASS for no-API scope only |
+| External independent review | PENDING |
+| G4 Paid exploratory smoke | NOT STARTED; no approval granted |
+| G5 Linkage-aware evolutionary search | NOT STARTED |
+
+The $80 smoke hard cap is a stop limit, not spending authorization. Current conservative 64-episode estimates ($4.663296 without retries; $9.326592 with one retry on every request) are valid only if the 2,000-input/512-output token limits and one-retry-per-request rule are enforced. No algorithmic improvement, statistical significance, or novelty claim is made.

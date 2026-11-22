@@ -2,10 +2,10 @@
 
 **Repository:** https://github.com/yujian777555/NIL-CCEA
 **Branch:** `phase0b-adapter-statistical-corrections`
-**Base SHA for this handoff:** `33db2fdf2603d6ba37975f82b3b9a9b0a90217b9`
+**Phase 0C implementation baseline SHA:** `f97467b8dcfb60a3d36cfd6638cd4e507509bc4a`
 **PR #2:** https://github.com/yujian777555/NIL-CCEA/pull/2 (open)
 **PR #1:** https://github.com/yujian777555/NIL-CCEA/pull/1 (open)
-**Authoritative prompt:** [docs/EXECUTOR_PROMPT_PHASE0C.md](EXECUTOR_PROMPT_PHASE0C.md)
+**Authoritative prompt:** [docs/EXECUTOR_PROMPT_PHASE0D.md](EXECUTOR_PROMPT_PHASE0D.md)
 
 ## User-selected model
 
@@ -44,7 +44,7 @@ Phase 0A and Phase 0B are reported complete. Phase 0C client, modules, and no-AP
 - Four DeepSeek module wrappers and binary manifest variants.
 - Real tau2 factorial runner and 32-cell no-API Orchestrator test.
 - 29 total tests pass in host and independent tau2 environments.
-- GitHub Actions host workflow passes on final head `33db2fdf2603d6ba37975f82b3b9a9b0a90217b9`.
+- GitHub Actions run `44914883210` passed on implementation head `f97467b8dcfb60a3d36cfd6638cd4e507509bc4a`.
 - Self-review is recorded in `docs/PHASE0C_INDEPENDENT_REVIEW.md`; external independent review is still required.
 
 ## Remaining work
@@ -64,3 +64,16 @@ Phase 0A and Phase 0B are reported complete. Phase 0C client, modules, and no-AP
 - G5 Search: NOT STARTED
 
 The user has selected the model but has **not** authorized paid API calls. Keep this repository isolated from all other projects.
+
+
+## Phase 0D handoff — 2026-11-23
+
+- Phase 0C no-API implementation is complete as reported; no DeepSeek API request or paid benchmark episode has been executed.
+- PR #2 remains open/unmerged. At handoff, there are no submitted reviews or review threads; external independent review is pending.
+- Official public DeepSeek docs currently list `deepseek-flash` served by DeepSeek-V4.1-Flash-1017. This does not verify a live response model or fingerprint.
+- Phase 0D prompt: [docs/EXECUTOR_PROMPT_PHASE0D.md](EXECUTOR_PROMPT_PHASE0D.md).
+- Phase 0D is strictly no-API. Resolve retry accounting, remove episode replay, persist request-level audit and partial trajectories, enforce model/fingerprint and budgets, obtain independent review, and rerun tests/CI.
+- Proposed exploratory smoke tasks: retail 5 and airline 2 (first listed task per locked family); verify against the pinned test split and freeze before any paid call.
+- The user has not authorized paid API requests. Ask for explicit approval after all preflight gates pass.
+- The 64-episode smoke is exploratory with two task clusters only. Do not claim significance or estimate formal power from n=2 tasks.
+- Keep NIL-CCEA isolated from all other repositories; do not merge PR #1 or #2.
