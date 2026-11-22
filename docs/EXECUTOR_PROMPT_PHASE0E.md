@@ -1,61 +1,159 @@
-# NIL-CCEA Phase 0E 接手提示词
+# NIL-CCEA Phase 0E — Final preflight and exploratory-smoke authorization
 
-## 当前仓库状态
+## Repository baseline
 
-- 仓库：`https://github.com/yujian777555/NIL-CCEA`
-- 分支：`phase0b-adapter-statistical-corrections`
-- Phase 0D 修复提交：`7f07bbfd75927bb35a6cabd466799aded8c5fb57`
-- 当前文档头：`55e36241f77d81ba413a27a011fb886b5ca68ff0`
-- pinned tau2-bench：v1.0.1，commit `fc0055dc4e0a316c3f83133267fbd6faaa770992`
-- 当前 DeepSeek API 请求：0
-- 当前付费批准：未获得
+- Repository: https://github.com/yujian777555/NIL-CCEA
+- Branch: `phase0b-adapter-statistical-corrections`
+- Current reported remote/PR #2 head: `b1c197eb5973575ae2ffa7c5c4cfe0d0fc9bf3a9`
+- PR #2: https://github.com/yujian777555/NIL-CCEA/pull/2 (open, unmerged)
+- Phase 0D CI: run `45046796585`, success
+- Pinned tau2-bench: v1.0.1, commit `fc0055dc4e0a316c3f83133267fbd6faaa770992`
+- Phase 0D review: `docs/PHASE0D_INDEPENDENT_REVIEW.md`
+- Phase 0E preflight findings: `docs/PHASE0E_PREFLIGHT_REVIEW.md`
 
-## 开始前必须阅读
+## Mission
 
-1. `docs/EXECUTOR_PROMPT_PHASE0D.md`
+Complete the final preflight for the 64-episode DeepSeek Flash exploratory factorial smoke. Resolve the provider-backed User Simulator bypass and assess the known retail task 5 issue. Reproduce all no-API tests and CI, freeze the manifest and cost controls, then ask the user for explicit paid-run approval.
+
+**HARD STOP: Until explicit approval is received, do not read `DEEPSEEK_API_KEY`, do not send any request to DeepSeek, and do not execute a paid benchmark episode.**
+
+## Read first
+
+1. `docs/PHASE0E_PREFLIGHT_REVIEW.md`
 2. `docs/PHASE0D_INDEPENDENT_REVIEW.md`
-3. `STATUS.md`
-4. `NEXT_STEPS.md`
-5. `experiments/pilot_factorial/cost_profile.json`
+3. `docs/EXECUTOR_PROMPT_PHASE0D.md`
+4. `STATUS.md`
+5. `NEXT_STEPS.md`
+6. `experiments/pilot_factorial/cost_profile.json`
+7. Pinned tau2 UserSimulator and LiteLLM source at the commit above.
 
-## 硬性边界
+## 1. Verify repository and preserve artifacts
 
-- 未获得用户明确批准前，不得读取 API key，不得向 DeepSeek 发送请求，不得启动付费 smoke。
-- 不得修改主线研究问题，不得提前实现完整演化优化器，不得声称性能提升、统计显著性或创新性成立。
-- 保留所有原始 artifact，禁止覆盖已有 `episodes.jsonl`、`request_events.jsonl`、`cost_ledger.json` 和 `run_summary.json`。
+- Verify branch, current HEAD, PR #2 head, remote sync, working tree, and latest CI.
+- Keep NIL-CCEA isolated from all other repositories.
+- Do not modify main, merge PR #1/#2, force-push, rewrite history, or overwrite any existing artifact.
+- Preserve all existing `episodes.jsonl`, `request_events.jsonl`, `cost_ledger.json`, and `run_summary.json`.
+- Correct stale SHA/run references in handoff docs and keep all docs synchronized.
 
-## 获得批准后的唯一实验
+## 2. P0 — Replace stock tau2 UserSimulator's LiteLLM path
 
-- Provider：DeepSeek
-- 请求模型别名：`deepseek-flash`
-- 公开文档 served version：`DeepSeek-V4.1-Flash-1017`
-- Base URL：`https://api.deepseek.com`
-- thinking disabled，temperature 0，max output 512，输入保守上限 2,000
-- Planner、Selector、Caller、Synthesizer、Agent 和 User Simulator 使用同一模型别名和 decoding
-- task：retail 5、airline 2
-- seed：0、1
-- 配置：四模块全部 16 个二进制配置
-- 规模：64 episodes
-- primary endpoint：`EvaluationType.ENV` 的 environment reward
-- 最大正常请求：3,840。按照每请求一次重试的上界：7,680
-- 成本上界：无重试 `$4.663296`，所有请求一次重试 `$9.326592`
-- `$80` 只是硬停止线，不是消费授权
+Pinned tau2 `UserSimulator._generate_next_message` calls tau2's imported `llm_utils.generate`, which calls LiteLLM `completion()`. A stock UserSimulator with only `llm="deepseek-flash"` may pass the current string-level model check while bypassing NIL-CCEA's controlled DeepSeekClient, RequestBudget, request ledger, fingerprint checks, and direct no-proxy transport.
 
-## 执行前检查
+Implement a narrow provider-backed tau2 User Simulator adapter/subclass in NIL-CCEA:
 
-1. 重新核对官方 endpoint、模型文档、价格和 tau2 任务 ID。
-2. 明确用户批准的消费上限，并据此构造 `RequestBudget`，预留最大重试 profile。
-3. 生成包含 task、seed、16 配置、模型请求别名、协议 hash 和代码 SHA 的 pre-run manifest。
-4. 验证 User Simulator 暴露可检查的 `deepseek-flash` client 或模型元数据。
-5. 运行最小单 episode 请求前检查，确认 ledger 字段、response model、system fingerprint、请求 ID 和 usage 存在。
+- Preserve tau2's half-duplex UserSimulator interface and UserState semantics.
+- Override the generation path so every user-simulator completion uses the NIL-CCEA DeepSeekClient.
+- Expose `llm="deepseek-flash"` and an inspectable `client` attribute.
+- Share the exact same RequestBudget object with the four module clients.
+- Set per-episode request context: run_id, episode_id, task_id, seed, configuration_id, module=`user_simulator`.
+- Drain and persist every physical user-simulator request event to the same episode-linked ledger.
+- Preserve message history role flipping, optional user tool calls, tau2 Tool schemas, usage/cost, and raw response metadata.
+- Use the same base URL, temperature 0, output cap 512, thinking disabled, retry policy, identity enforcement, and budget reservation.
+- Do not call tau2's LiteLLM `generate` in the paid execution path.
+- Do not modify pinned tau2 source or monkeypatch global LiteLLM state.
+- Fail closed if the user simulator does not expose the controlled client or if its model/decoding/budget is inconsistent.
 
-## 停止条件
+Add fake-client no-API tests:
+1. stock tau2 LiteLLM generate is not invoked;
+2. UserSimulator uses the injected DeepSeekClient;
+3. user and agent requests share one RequestBudget;
+4. user requests carry module attribution `user_simulator`;
+5. tool-call and plain-text user responses preserve tau2 semantics;
+6. model/fingerprint failure quarantines the run;
+7. audit events and costs persist incrementally.
 
-- 任何 model 或 system fingerprint 缺失或漂移，立即 quarantine 整批并停止。
-- 任何预算预留、输入上限、请求数或硬停止线即将超限，停止下一请求。
-- timeout、5xx 或交付状态未知的网络错误不得自动重放。
-- 缺少 ENV reward、工具 schema 或模块模型不一致时，将 episode 标记为失败并保留部分轨迹。
+## 3. Assess retail task 5's known environment issue
 
-## 结果解释
+Both proposed tasks are confirmed members of the pinned test split:
+- retail task 5;
+- airline task 2.
 
-该 smoke 只有两个 task cluster，只用于验证真实调用链、轨迹、成本和交互可行性。完成后只报告原始记录、描述性四格对比和数据质量，不进行显著性结论。后续 12-task 阶段仍需独立协议、功效和批准 gate，演化主线保持为交互测量、Linkage Learning 和 Linkage-aware Cooperative Co-evolution。
+However, retail task 5 metadata contains open issue `issue_770466c1`: the retail environment may permit user-level actions without authentication, while the retail policy requires identity verification by email or name + zip before profile/order access.
+
+Before freezing the pre-run manifest:
+- inspect the exact task 5 action path and whether the issue can change ENV reward or permit a shortcut;
+- document the issue and impact;
+- do not silently change task IDs;
+- if the issue invalidates the task, propose an explicit protocol amendment and ask the user before substituting a task or patching the environment.
+
+Do not modify the pinned tau2 release in place. Any environment patch must be separately versioned, hashed, and reviewed.
+
+## 4. Recheck public provider docs and pricing
+
+Recheck on execution date:
+- https://api-docs.deepseek.com/quick_start/pricing/
+- https://api-docs.deepseek.com/api/create-chat-completion/
+- https://api-docs.deepseek.com/guides/thinking_mode/
+- https://api-docs.deepseek.com/guides/tool_calls/
+
+At the 2026-11-23 check, the public docs list:
+- alias `deepseek-flash`;
+- served version `DeepSeek-V4.1-Flash-1017`;
+- base URL `https://api.deepseek.com`;
+- peak cache-miss input $0.30/M, peak cache-hit input $0.006/M, peak output $1.20/M;
+- JSON Output, Tool Calls, and explicit disabled-thinking control.
+
+Public documentation does not verify the model/fingerprint returned to this account. That check must occur on the first approved request, which must be counted inside the 64-episode budget, not as an unbudgeted extra request.
+
+## 5. Frozen smoke candidate and costs
+
+Unless a task-quality issue requires a user-approved protocol amendment, the candidate is:
+
+- retail task 5 + airline task 2;
+- test split;
+- seeds 0 and 1;
+- all 16 binary configurations of Planner, Selector, Caller, Synthesizer;
+- 64 episodes;
+- max 30 steps;
+- primary endpoint: tau2 `EvaluationType.ENV` environment reward;
+- all agent modules and User Simulator use `deepseek-flash`, temperature 0, thinking disabled, output cap 512, declared input cap 2,000.
+
+Cost upper bounds at peak cache-miss prices:
+- $0.0012144/request;
+- 3,840 normal physical requests;
+- 7,680 physical requests if every request is safely retried once;
+- $4.663296 no-retry upper bound;
+- $9.326592 all-requests-retried-once upper bound;
+- $80 hard stop, not spending authorization.
+
+These bounds are valid only if both agent and user requests share the same request/token/cost budgets and retry controls. Reserve the worst-case next physical attempt before sending. No episode-level replay. Never retry delivery-unknown requests, timeouts, or 5xx.
+
+## 6. Pre-run manifest and approval package
+
+After the UserSimulator fix, task issue assessment, tests and CI pass:
+
+- Generate a new immutable pre-run manifest with current code SHA, protocol hash, task IDs, test split, seeds, all 16 configurations, tau2 commit, requested model alias, decoding, endpoint, budget profile, and task issue disclosure.
+- Verify user simulator and four module clients expose the same model alias, endpoint, decoding and shared RequestBudget.
+- Verify the first request's response identity will be checked before continuing; no model/fingerprint value may be hardcoded as observed.
+- Ensure first identity check is the first request within the approved 64-episode run.
+- Do not read the API key before approval.
+- Present the user with exact task IDs, 64 episodes, 3,840 normal / 7,680 maximum physical requests, cost bounds, user-approved spend ceiling, $80 hard stop, model/endpoint, and stop/quarantine rules.
+- Wait for explicit approval. Silence, prior model choice, or budget discussion is not approval.
+
+## 7. Tests, CI and maintenance
+
+Run:
+- host no-API suite;
+- pinned Python 3.12.16 + tau2 v1.0.1 suite;
+- 32-cell real tau2 Orchestrator no-API factorial integration;
+- all new UserSimulator fake-client tests;
+- final GitHub Actions on the final pushed SHA.
+
+Update:
+- `STATUS.md`
+- `NEXT_STEPS.md`
+- `docs/HANDOFF.md`
+- `docs/RESEARCH_LOG.md`
+- `docs/PHASE0E_PREFLIGHT_REVIEW.md`
+- `docs/EXECUTOR_PROMPT_PHASE0E.md`
+- `experiments/pilot_factorial/cost_profile.json` (only if public price or assumptions change)
+
+Report exact SHA, CI run, tests, task issue decision, UserSimulator implementation, API calls (must remain zero until approval), key reads (must remain zero until approval), and gates.
+
+## Research interpretation
+
+The 64-episode smoke has only two task clusters. It is strictly exploratory: verify provider/runner wiring, traces, cost, task execution, and descriptive 2^4 interaction feasibility. Do not claim statistical significance, reliable task-cluster variance, algorithmic improvement, or novelty.
+
+After a valid smoke, the next research stage is a separately approved 12-task × 2-seed × 16-configuration study (384 episodes) to estimate task-level interaction variance. Only then proceed to Linkage Learning and Linkage-aware Cooperative Co-evolution under equal evaluation budgets.
+
+Do not implement the full evolutionary optimizer before trustworthy interaction measurements exist. Do not stop the research because one task or integration needs revision; diagnose and continue without fabricating evidence.
