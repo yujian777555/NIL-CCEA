@@ -88,3 +88,4 @@ The user has selected the model but has **not** authorized paid API calls. Keep 
 - Host and pinned tau2 Python 3.12.16 suites each pass 34 tests. DeepSeek API calls and key reads remain 0.
 - Paid smoke gate remains closed. The frozen candidate is retail task 5 plus airline task 2, seeds 0 and 1, all 16 configurations, 64 exploratory episodes. No statistical significance or algorithmic improvement claim is allowed.
 - Next executor must verify the final GitHub Actions run on the pushed SHA, recheck public pricing, and wait for explicit user approval before any provider request.
+- Next-stage executor prompt: [docs/EXECUTOR_PROMPT_PHASE0E.md](EXECUTOR_PROMPT_PHASE0E.md).

@@ -96,3 +96,4 @@ Smoke task candidate: retail task 5 + airline task 2, selected deterministically
 - DeepSeek API calls remain 0. No API key was read. The 64-episode smoke remains blocked until the user grants explicit paid-run approval.
 - Before approval, verify provider pricing again, construct a provider-backed User Simulator exposing `deepseek-flash`, generate the retail-5 and airline-2 pre-run manifest, and set a `RequestBudget` sized for the chosen retry profile.
 - After approval, run only the frozen exploratory smoke, stop on the first model or fingerprint mismatch, preserve all raw artifacts, and report descriptive interaction estimates without significance or performance claims.
+- Next-stage handoff prompt: `docs/EXECUTOR_PROMPT_PHASE0E.md`.
