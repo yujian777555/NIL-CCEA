@@ -126,3 +126,15 @@
 - The declared 2,000 input-token limit is enforced with a conservative UTF-8 serialized-request byte bound covering messages, tools, response format, and tool choice. This is a fail-closed engineering bound and does not claim tokenizer-equivalent counts.
 - Host and pinned Python 3.12.16/tau2-bench v1.0.1 no-API suites each pass 34 tests. The pinned suite includes real tau2 classes and a 32-cell factorial runner. DeepSeek API calls remain 0 and no API key was read.
 - The 64-episode smoke remains exploratory and unauthorized. It uses retail task 5 and airline task 2, seeds 0/1, and all 16 configurations. No significance, performance gain, or novelty claim is made.
+
+
+## 2026-11-23 — Phase 0E preflight audit
+
+- Verified reported Phase 0D final branch/PR #2 head `b1c197eb5973575ae2ffa7c5c4cfe0d0fc9bf3a9`; PR #2 remains open/unmerged. GitHub Actions run `45046796585` succeeded on this SHA.
+- Rechecked official DeepSeek public docs and pricing on 2026-11-23. The `deepseek-flash` alias, published served version DeepSeek-V4.1-Flash-1017, endpoint, JSON/Tool Call support, disabled-thinking setting, and prices remain unchanged. This is not a live account response identity check.
+- Verified that retail task 5 and airline task 2 are in the pinned tau2 v1.0.1 test split.
+- Found that retail task 5 metadata contains open issue `issue_770466c1`: the retail domain may allow user-level actions without authentication although its policy requires authentication. The issue's impact on task 5 and the ENV endpoint must be reviewed before the final pre-run freeze. No task substitution is permitted without a versioned protocol amendment.
+- Found a P0 UserSimulator integration gap in the pinned tau2 source: stock `UserSimulator._generate_next_message` calls tau2's `llm_utils.generate`, which calls LiteLLM `completion()`. NIL-CCEA's model-name check can accept `user.llm="deepseek-flash"` even when the user simulator bypasses the controlled DeepSeekClient, shared RequestBudget, request ledger, fingerprint validation, and direct transport.
+- Added `docs/PHASE0E_PREFLIGHT_REVIEW.md` and expanded `docs/EXECUTOR_PROMPT_PHASE0E.md` to require a provider-backed tau2 half-duplex UserSimulator adapter/subclass, shared budget and audit events, fake-client tests proving LiteLLM is not invoked, and task 5 issue impact assessment.
+- Updated STATUS, NEXT_STEPS, and HANDOFF to point to Phase 0E and record current SHA/CI.
+- No API key was read, no DeepSeek request was sent, and no paid episode was run. The 64-episode smoke remains NOT AUTHORIZED / NOT STARTED.
