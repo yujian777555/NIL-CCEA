@@ -63,7 +63,7 @@
     "output_off_peak": 0.6
   },
   "pricing_verification": {
-    "verified_on": "2026-11-20",
+    "verified_on": "2026-11-23",
     "source": "Official DeepSeek API Models & Pricing",
     "pricing_url": "https://api-docs.deepseek.com/quick_start/pricing/",
     "peak_hours_utc": "01:00-04:00 and 06:00-10:00, Monday-Friday, excluding Chinese public holidays",
@@ -72,7 +72,8 @@
       "JSON Output",
       "Tool Calls"
     ],
-    "note": "Provider prices may change; recheck immediately before a paid run."
+    "note": "Public docs rechecked 2026-11-23; prices unchanged. Recheck again immediately before any paid run. Actual account response model/fingerprint remains unverified.",
+    "last_public_document_recheck": "2026-11-23"
   },
   "derived_upper_bounds_usd": {
     "per_request_peak_cache_miss": 0.0012144,
@@ -92,5 +93,9 @@
     "state": "historical_only_not_selected"
   },
   "real_api_calls_started": 0,
-  "paid_smoke_approval": "NOT_GRANTED"
+  "paid_smoke_approval": "NOT_GRANTED",
+  "user_simulator_preflight": {
+    "status": "BLOCKED_PENDING_PROVIDER_BACKED_TAU2_ADAPTER",
+    "note": "Stock tau2 UserSimulator uses LiteLLM generate() and must be replaced by a tau2-compatible adapter backed by NIL-CCEA DeepSeekClient and shared RequestBudget before paid smoke."
+  }
 }
