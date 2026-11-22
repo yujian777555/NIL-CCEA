@@ -5,6 +5,8 @@
 **Current workstream:** Phase 0D — independent audit, provider preflight, and paid-smoke readiness
 **Active branch:** `phase0b-adapter-statistical-corrections`
 **Phase 0C implementation baseline SHA:** `f97467b8dcfb60a3d36cfd6638cd4e507509bc4a`
+**Phase 0D current implementation SHA:** `7f07bbfd75927bb35a6cabd466799aded8c5fb57`
+**Latest GitHub Actions run:** `45046604660` — success
 **PR #2:** https://github.com/yujian777555/NIL-CCEA/pull/2 (open, not merged)
 **PR #1:** https://github.com/yujian777555/NIL-CCEA/pull/1 (open, not merged)
 **Authoritative next prompt:** [docs/EXECUTOR_PROMPT_PHASE0D.md](docs/EXECUTOR_PROMPT_PHASE0D.md)

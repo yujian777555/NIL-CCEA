@@ -118,6 +118,8 @@
 - No paid API call, benchmark result, significance test, algorithmic performance gain, or novelty claim is recorded.
 ## 2026-11-23 — Phase 0D independent review and accounting corrections
 
+- The corrected implementation was committed as `7f07bbfd75927bb35a6cabd466799aded8c5fb57` and pushed to `phase0b-adapter-statistical-corrections`. GitHub Actions run `45046604660` passed.
+
 - A separate read-only reviewer audited the Phase 0C DeepSeek client and tau2 runner against the Phase 0D executor prompt. The initial findings covered retry-policy mismatch, episode replay, delivery-unknown transport errors, in-memory request events, unenforced model identity, missing budgets, cache accounting, missing ENV reward handling, User Simulator consistency, and partial trajectory preservation.
 - The client now records one durable event per physical attempt with run and episode linkage, task, seed, configuration, module, request IDs, prompt hash, requested and returned model, fingerprint, delivery status, usage, actual cost, and conservative upper-bound cost. RequestBudget reserves the maximum retry profile before an outbound request and supports episode-scoped limits.
 - The runner no longer retries whole episodes. It writes raw episodes and request events incrementally, rebuilds a cost ledger after each episode, preserves partial trajectories, and quarantines the batch on model or fingerprint identity failure.

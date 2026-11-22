@@ -3,6 +3,8 @@
 **Repository:** https://github.com/yujian777555/NIL-CCEA
 **Branch:** `phase0b-adapter-statistical-corrections`
 **Phase 0C implementation baseline SHA:** `f97467b8dcfb60a3d36cfd6638cd4e507509bc4a`
+**Phase 0D current implementation SHA:** `7f07bbfd75927bb35a6cabd466799aded8c5fb57`
+**Latest GitHub Actions run:** `45046604660` — success
 **PR #2:** https://github.com/yujian777555/NIL-CCEA/pull/2 (open)
 **PR #1:** https://github.com/yujian777555/NIL-CCEA/pull/1 (open)
 **Authoritative prompt:** [docs/EXECUTOR_PROMPT_PHASE0D.md](EXECUTOR_PROMPT_PHASE0D.md)
