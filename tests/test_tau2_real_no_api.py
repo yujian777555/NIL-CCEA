@@ -1,4 +1,7 @@
+import json
+import tempfile
 import unittest
+from pathlib import Path
 
 try:
     from tau2.data_model.message import MultiToolMessage, ToolMessage, UserMessage
@@ -288,23 +291,59 @@ class Tau2RealNoApiTests(unittest.TestCase):
                 "synthesizer": RunnerSynthesizer(),
             }
 
+        with tempfile.TemporaryDirectory() as output_dir:
+            runner = Tau2FactorialRunner(
+                tau2_source_commit="fc0055dc4e0a316c3f83133267fbd6faaa770992",
+                task_version="v1.0.1",
+                environment_factory=get_environment,
+                user_factory=lambda task: ScriptedUser(),
+                module_factory=runner_modules,
+                output_dir=output_dir,
+                max_steps=5,
+                evaluate=False,
+            )
+            records = runner.run([get_tasks()[0]], seeds=(0, 1))
+            self.assertEqual(len(records), 32)
+            self.assertEqual(
+                len({(record["seed"], record["configuration_id"]) for record in records}),
+                32,
+            )
+            self.assertTrue(all(record["mode"] == "tau2-text-v1" for record in records))
+            self.assertTrue(all(record["status"] == "success" for record in records))
+            self.assertEqual(len(Path(output_dir, "episodes.jsonl").read_text().splitlines()), 32)
+            self.assertEqual(Path(output_dir, "request_events.jsonl").read_text(), "")
+            ledger = json.loads(Path(output_dir, "cost_ledger.json").read_text())
+            self.assertEqual(ledger["totals"]["events"], 0)
+            self.assertEqual(ledger["totals"]["api_cost"], 0.0)
+
+    def test_runner_does_not_replay_failed_episode(self):
+        calls = []
+
+        class FailingPlanner:
+            module_version = "planner.failure"
+
+            def plan(self, context):
+                raise RuntimeError("synthetic planner failure")
+
+        def failing_modules(configuration):
+            calls.append(configuration)
+            modules = build_mock_modules(configuration)
+            modules["planner"] = FailingPlanner()
+            return modules
+
         runner = Tau2FactorialRunner(
             tau2_source_commit="fc0055dc4e0a316c3f83133267fbd6faaa770992",
             task_version="v1.0.1",
             environment_factory=get_environment,
-            user_factory=lambda task: ScriptedUser(),
-            module_factory=runner_modules,
-            max_steps=5,
+            user_factory=lambda task: object(),
+            module_factory=failing_modules,
+            max_steps=2,
             evaluate=False,
         )
-        records = runner.run([get_tasks()[0]], seeds=(0, 1))
-        self.assertEqual(len(records), 32)
-        self.assertEqual(
-            len({(record["seed"], record["configuration_id"]) for record in records}),
-            32,
-        )
-        self.assertTrue(all(record["mode"] == "tau2-text-v1" for record in records))
-        self.assertTrue(all(record["status"] == "success" for record in records))
+        record = runner.run_episode(get_tasks()[0], 0, {slot: 0 for slot in SLOTS})
+        self.assertEqual(record["status"], "infra_failed")
+        self.assertEqual(record["retry_count"], 0)
+        self.assertEqual(len(calls), 1)
 
 
 if __name__ == "__main__":

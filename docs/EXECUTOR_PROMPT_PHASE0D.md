@@ -231,3 +231,7 @@ Final report must separate:
 - exact next action.
 
 Do not merge PRs. Do not claim algorithmic improvement. Do not send a paid API request.
+
+## 2026-11-23 execution update
+
+The required no-API corrections are implemented on the active branch. The client now uses a one-retry maximum, delivery-unknown no-replay, per-attempt request events, cache-aware usage accounting, conservative serialized-request input enforcement, and global plus episode-scoped budget reservation. The runner removes episode-level retry, persists partial trajectories and raw ledgers incrementally, fails closed on missing ENV reward, checks provider model consistency, and quarantines model or fingerprint identity drift. The separate independent review is recorded in `docs/PHASE0D_INDEPENDENT_REVIEW.md`. Host and pinned tau2 Python 3.12.16 suites each pass 34 no-API tests. These facts do not change the hard stop on paid requests or the requirement for explicit user approval.

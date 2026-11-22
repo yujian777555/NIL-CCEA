@@ -77,6 +77,16 @@ Existing hard caps remain $80 exploratory and $400 pilot. Recheck prices immedia
 
 No real benchmark performance, statistical significance, algorithmic improvement, or novelty claim is asserted. Model selection is not paid-run approval.
 
+## 2026-11-23 — Phase 0D code corrections completed locally
+
+- Independent read-only review is recorded in [docs/PHASE0D_INDEPENDENT_REVIEW.md](docs/PHASE0D_INDEPENDENT_REVIEW.md). The review is separate from the implementation work and is not a GitHub PR review.
+- DeepSeek client retries are bounded to one safe retry. Timeout, 5xx, and delivery-unknown network errors are recorded without automatic replay. Episode-level retries were removed.
+- Every physical request attempt now records episode linkage, task and seed, configuration, module, attempt number, client request ID, prompt hash, requested model, returned model, system fingerprint, usage, actual cost, conservative cost upper bound, and delivery status. The tau2 runner writes `request_events.jsonl` and `cost_ledger.json` incrementally.
+- Model identity is enforced on every parsed completion. Missing or changed identity quarantines the batch. Real ENV execution requires an explicit `RequestBudget`, four provider-backed module clients, and an inspectable DeepSeek Flash User Simulator.
+- The client enforces the declared input cap with a conservative UTF-8 serialized-request bound and reserves the maximum physical attempts before each request. Cache hit and miss usage is retained separately.
+- Host no-API suite passes 34 tests. Pinned Python 3.12.16 with tau2-bench v1.0.1 passes the same 34 tests, including the real tau2 Orchestrator 32-cell factorial check. DeepSeek API calls remain 0.
+- These results establish engineering readiness only. The 64-episode smoke remains exploratory and has no significance or performance claim.
+
 
 ## 2026-11-23 — Phase 0C closeout and Phase 0D handoff
 
@@ -98,8 +108,8 @@ No real benchmark performance, statistical significance, algorithmic improvement
 | G1 Environment | PASS for pinned tau2 and reported no-API integration |
 | G2 Public provider docs | PASS on 2026-11-23 |
 | G2 Live returned model/fingerprint | NOT VERIFIED; requires first approved completion |
-| G2 Runner/accounting/retry contract | NEEDS_REVISION |
-| G3 No-API integration | PASS for reported test scope |
+| G2 Runner/accounting/retry contract | PASS for no-API code path; live identity unverified |
+| G3 No-API integration | PASS, 34 host and 34 pinned tau2 tests |
 | G3 Real-runner readiness | PASS for no-API scope only |
 | External independent review | PENDING |
 | G4 Paid exploratory smoke | NOT STARTED; no approval granted |

@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 import json
+import inspect
 import traceback
 import uuid
 from pathlib import Path
 from typing import Any, Callable
 
-from .manifest import SLOTS, build_run_manifest, configuration_id
+from .manifest import SLOTS, build_run_manifest, canonical_json, configuration_id, sha256_text
 from .factorial import generate_binary_configurations, validate_complete_binary_configurations
 from .tau2_adapter import InvalidToolCallError, build_tau2_agent_class
+from .deepseek_client import DeepSeekIdentityError, RequestBudget
 
 
 class Tau2RunnerError(RuntimeError):
@@ -32,7 +34,7 @@ class Tau2FactorialRunner:
         max_steps: int = 30,
         max_errors: int = 10,
         evaluate: bool = True,
-        max_retries: int = 1,
+        request_budget: RequestBudget | None = None,
     ) -> None:
         self.tau2_source_commit = tau2_source_commit
         self.task_version = task_version
@@ -43,7 +45,9 @@ class Tau2FactorialRunner:
         self.max_steps = max_steps
         self.max_errors = max_errors
         self.evaluate = evaluate
-        self.max_retries = max(0, max_retries)
+        self.request_budget = request_budget
+        if self.evaluate and self.request_budget is None:
+            raise ValueError("真实 ENV 运行必须显式提供 RequestBudget")
         self.agent_class = build_tau2_agent_class()
 
     def run(
@@ -56,29 +60,31 @@ class Tau2FactorialRunner:
         if len(seeds) < 2 or len(set(seeds)) != len(seeds):
             raise ValueError("tau2 factorial runner 要求至少两个不重复 seed")
         records: list[dict[str, Any]] = []
+        self._prepare_output()
         for task in tasks:
             for seed in seeds:
                 for configuration in configurations:
-                    records.append(self.run_episode(task, seed, configuration))
-        self._write_records(records)
+                    record = self.run_episode(task, seed, configuration)
+                    records.append(record)
+                    self._append_record(record)
+                    if record.get("quarantine"):
+                        self._write_run_summary(records)
+                        raise Tau2RunnerError("模型身份或 fingerprint 漂移，批次已 quarantine")
         self._validate_run_completeness(records, tasks, seeds)
+        self._write_run_summary(records)
         return records
 
     def run_episode(
         self, task: Any, seed: int, configuration: dict[str, int]
     ) -> dict[str, Any]:
-        for retry_index in range(self.max_retries + 1):
-            record = self._run_episode_once(task, seed, configuration)
-            record["retry_count"] = retry_index
-            if record["status"] != "infra_failed" or retry_index >= self.max_retries:
-                return record
-        raise Tau2RunnerError("tau2 episode retry loop exited unexpectedly")
+        return self._run_episode_once(task, seed, configuration)
 
     def _run_episode_once(
         self, task: Any, seed: int, configuration: dict[str, int]
     ) -> dict[str, Any]:
         environment = self.environment_factory()
         modules = self.module_factory(configuration)
+        self._bind_runtime_controls(modules)
         agent = self.agent_class(
             tools=environment.get_tools(),
             domain_policy=environment.get_policy(),
@@ -91,7 +97,30 @@ class Tau2FactorialRunner:
             task_family=environment.get_domain_name(),
         )
         user = self.user_factory(task)
+        self._bind_user_runtime_controls(user)
         run_id = str(uuid.uuid4())
+        for slot, module in modules.items():
+            client = getattr(module, "client", None)
+            if client is not None and hasattr(client, "set_episode_context"):
+                client.set_episode_context(
+                    run_id=run_id,
+                    episode_id=run_id,
+                    task_id=str(task.id),
+                    seed=seed,
+                    configuration_id=configuration_id(configuration),
+                    module=slot,
+                )
+        for attribute in ("client", "llm_client", "deepseek_client"):
+            client = getattr(user, attribute, None)
+            if client is not None and hasattr(client, "set_episode_context"):
+                client.set_episode_context(
+                    run_id=run_id,
+                    episode_id=run_id,
+                    task_id=str(task.id),
+                    seed=seed,
+                    configuration_id=configuration_id(configuration),
+                    module="user_simulator",
+                )
         manifest = build_run_manifest(
             configuration,
             environment={
@@ -103,8 +132,9 @@ class Tau2FactorialRunner:
             },
             model={
                 "provider": "deepseek",
-                "model": "deepseek-flash",
-                "version": "DeepSeek-V4.1-Flash-1017",
+                "requested_model": "deepseek-flash",
+                "served_model": None,
+                "system_fingerprint": None,
             },
             decoding={
                 "temperature": 0.0,
@@ -113,7 +143,9 @@ class Tau2FactorialRunner:
             },
             mode="tau2-text-v1",
             source_commit=self.tau2_source_commit,
+            module_overrides={slot: self._module_provenance(slot, module) for slot, module in modules.items()},
         )
+        orchestrator = None
         try:
             from tau2.orchestrator.orchestrator import Orchestrator
 
@@ -127,6 +159,7 @@ class Tau2FactorialRunner:
                 max_errors=self.max_errors,
                 seed=seed,
             )
+            self._validate_model_consistency(modules, user)
             if self.evaluate:
                 from tau2.evaluator.evaluator import EvaluationType
                 from tau2.runner.simulation import run_simulation
@@ -138,12 +171,15 @@ class Tau2FactorialRunner:
             else:
                 simulation = orchestrator.run()
             messages = simulation.get_messages()
+            request_events = self._drain_request_events(modules, user)
             reward_info = getattr(simulation, "reward_info", None)
             primary_score = None
             if reward_info is not None:
                 primary_score = getattr(reward_info, "reward", None)
             termination_reason = getattr(simulation, "termination_reason", None)
             termination_value = getattr(termination_reason, "value", str(termination_reason))
+            if self.evaluate and reward_info is None:
+                raise Tau2RunnerError("ENV reward missing; episode is not a valid success")
             if not self.evaluate:
                 status = "success"
                 failure_kind = None
@@ -170,12 +206,18 @@ class Tau2FactorialRunner:
                 "trajectory": [message.model_dump() for message in messages],
                 "retry_count": 0,
                 "failures": [],
+                "request_events": request_events,
+                "quarantine": False,
                 "termination_reason": termination_value,
                 "manifest": manifest.to_dict(),
             }
         except Exception as exc:
             failure_kind = "agent" if isinstance(exc, InvalidToolCallError) else "infrastructure"
             status = "agent_failed" if failure_kind == "agent" else "infra_failed"
+            partial_messages = []
+            if orchestrator is not None and hasattr(orchestrator, "trajectory"):
+                partial_messages = [message.model_dump() for message in orchestrator.trajectory]
+            request_events = self._drain_request_events(modules, user)
             return {
                 "run_id": run_id,
                 "mode": "tau2-text-v1",
@@ -190,7 +232,7 @@ class Tau2FactorialRunner:
                 "status": status,
                 "failure_kind": failure_kind,
                 "primary_score": None,
-                "trajectory": [],
+                "trajectory": partial_messages,
                 "retry_count": 0,
                 "failures": [
                     {
@@ -199,8 +241,95 @@ class Tau2FactorialRunner:
                         "traceback": traceback.format_exc(),
                     }
                 ],
+                "request_events": request_events,
+                "quarantine": isinstance(exc, DeepSeekIdentityError),
                 "manifest": manifest.to_dict(),
             }
+
+    @staticmethod
+    def _module_provenance(slot: str, module: Any) -> dict[str, Any]:
+        variant_id = getattr(module, "module_version", type(module).__name__)
+        try:
+            source = inspect.getsource(type(module))
+        except (OSError, TypeError):
+            source = f"{type(module).__module__}:{type(module).__qualname__}"
+        return {
+            "slot": slot,
+            "variant_id": variant_id,
+            "mechanism": type(module).__name__,
+            "interface_version": "module-contracts-draft-r1",
+            "content_sha256": sha256_text(
+                canonical_json({"variant_id": variant_id, "source": source})
+            ),
+        }
+
+    def _bind_runtime_controls(self, modules: dict[str, Any]) -> None:
+        for module in modules.values():
+            client = getattr(module, "client", None)
+            if client is not None and self.request_budget is not None and hasattr(client, "budget"):
+                client.budget = self.request_budget
+
+    def _bind_user_runtime_controls(self, user: Any) -> None:
+        if self.request_budget is None:
+            return
+        for attribute in ("client", "llm_client", "deepseek_client"):
+            client = getattr(user, attribute, None)
+            if client is not None and hasattr(client, "budget"):
+                client.budget = self.request_budget
+
+    def _validate_model_consistency(self, modules: dict[str, Any], user: Any) -> None:
+        clients = [getattr(module, "client", None) for module in modules.values()]
+        clients = [client for client in clients if client is not None]
+        if self.evaluate and len(clients) != len(modules):
+            raise Tau2RunnerError("真实 ENV 运行要求四个模块均暴露 DeepSeek 客户端")
+        for client in clients:
+            if getattr(client, "model", None) != "deepseek-flash":
+                raise Tau2RunnerError("模块客户端必须使用 deepseek-flash")
+            if getattr(client, "temperature", 0.0) != 0.0 or getattr(client, "max_output_tokens", 512) != 512:
+                raise Tau2RunnerError("模块客户端 decoding 配置不一致")
+        module_bases = {getattr(client, "base_url", "https://api.deepseek.com") for client in clients}
+        if len(module_bases) > 1:
+            raise Tau2RunnerError("模块客户端 base URL 不一致")
+        user_client = next(
+            (getattr(user, attribute, None) for attribute in ("client", "llm_client", "deepseek_client") if getattr(user, attribute, None) is not None),
+            None,
+        )
+        user_model = getattr(user, "llm", None)
+        if user_model is None and user_client is not None:
+            user_model = getattr(user_client, "model", None)
+        if user_model is None:
+            if self.evaluate:
+                raise Tau2RunnerError("User Simulator 未暴露可验证的 DeepSeek Flash 客户端")
+            return
+        if not isinstance(user_model, str):
+            user_model = getattr(user_model, "model", None)
+        if user_model != "deepseek-flash":
+            raise Tau2RunnerError(
+                f"User Simulator model mismatch: expected deepseek-flash, observed {user_model}"
+            )
+        if user_client is not None and (
+            getattr(user_client, "temperature", 0.0) != 0.0
+            or getattr(user_client, "max_output_tokens", 512) != 512
+        ):
+            raise Tau2RunnerError("User Simulator decoding 配置不一致")
+        if user_client is not None and getattr(user_client, "base_url", "https://api.deepseek.com") not in module_bases:
+            raise Tau2RunnerError("User Simulator base URL 与模块不一致")
+
+    @staticmethod
+    def _drain_request_events(modules: dict[str, Any], user: Any) -> list[dict[str, Any]]:
+        events: list[dict[str, Any]] = []
+        clients: list[Any] = [getattr(module, "client", None) for module in modules.values()]
+        clients.extend(
+            getattr(user, attribute, None)
+            for attribute in ("client", "llm_client", "deepseek_client")
+        )
+        seen: set[int] = set()
+        for client in clients:
+            if client is None or id(client) in seen or not hasattr(client, "drain_audit_events"):
+                continue
+            seen.add(id(client))
+            events.extend(client.drain_audit_events())
+        return events
 
     def _validate_run_completeness(
         self, records: list[dict[str, Any]], tasks: list[Any], seeds: tuple[int, ...]
@@ -218,10 +347,62 @@ class Tau2FactorialRunner:
         if expected != actual:
             raise Tau2RunnerError("tau2 runner 输出缺少或重复 task-seed-configuration")
 
-    def _write_records(self, records: list[dict[str, Any]]) -> None:
+    def _prepare_output(self) -> None:
         if self.output_dir is None:
             return
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        with (self.output_dir / "episodes.jsonl").open("w", encoding="utf-8") as handle:
-            for record in records:
-                handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+        for filename in ("episodes.jsonl", "request_events.jsonl", "cost_ledger.json", "run_summary.json"):
+            path = self.output_dir / filename
+            if path.exists() and path.stat().st_size > 0:
+                raise Tau2RunnerError(f"拒绝覆盖已有 raw artifact: {path}")
+            path.touch()
+
+    def _append_record(self, record: dict[str, Any]) -> None:
+        if self.output_dir is None:
+            return
+        with (self.output_dir / "episodes.jsonl").open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+        with (self.output_dir / "request_events.jsonl").open("a", encoding="utf-8") as handle:
+            for event in record.get("request_events", []):
+                handle.write(json.dumps(event, ensure_ascii=False) + "\n")
+        self._write_cost_ledger()
+
+    def _write_cost_ledger(self) -> None:
+        if self.output_dir is None:
+            return
+        events_path = self.output_dir / "request_events.jsonl"
+        events = [
+            json.loads(line)
+            for line in events_path.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        totals = {
+            "events": len(events),
+            "input_tokens": sum(event.get("usage", {}).get("prompt_tokens", 0) for event in events),
+            "output_tokens": sum(event.get("usage", {}).get("completion_tokens", 0) for event in events),
+            "api_cost": sum(event.get("cost_usd", 0.0) for event in events),
+            "failed_events": sum(event.get("status") in {"infra_failed", "agent_failed"} for event in events),
+            "agent_failed_events": sum(event.get("status") == "agent_failed" for event in events),
+            "infra_failed_events": sum(event.get("status") == "infra_failed" for event in events),
+            "retry_events": sum(event.get("status") == "retry" for event in events),
+        }
+        with (self.output_dir / "cost_ledger.json").open("w", encoding="utf-8") as handle:
+            json.dump({"events": events, "totals": totals}, handle, ensure_ascii=False, indent=2)
+
+    def _write_run_summary(self, records: list[dict[str, Any]]) -> None:
+        if self.output_dir is None:
+            return
+        with (self.output_dir / "run_summary.json").open("w", encoding="utf-8") as handle:
+            json.dump(
+                {
+                    "episodes": len(records),
+                    "status_counts": {
+                        status: sum(record["status"] == status for record in records)
+                        for status in sorted({record["status"] for record in records})
+                    },
+                    "api_calls": sum(len(record.get("request_events", [])) for record in records),
+                },
+                handle,
+                ensure_ascii=False,
+                indent=2,
+            )

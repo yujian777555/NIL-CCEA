@@ -77,3 +77,12 @@ The user has selected the model but has **not** authorized paid API calls. Keep 
 - The user has not authorized paid API requests. Ask for explicit approval after all preflight gates pass.
 - The 64-episode smoke is exploratory with two task clusters only. Do not claim significance or estimate formal power from n=2 tasks.
 - Keep NIL-CCEA isolated from all other repositories; do not merge PR #1 or #2.
+# Phase 0D handoff update
+
+- Branch remains `phase0b-adapter-statistical-corrections`.
+- Phase 0D code corrections are implemented locally. The independent read-only review is recorded in `docs/PHASE0D_INDEPENDENT_REVIEW.md`.
+- The DeepSeek client now enforces one safe retry maximum, delivery-unknown no-replay, input/request/cost reservation, model/fingerprint validation, cache-aware accounting, and per-attempt audit events.
+- The real tau2 runner now has no episode-level retry, preserves partial trajectories, fails closed on missing ENV reward, requires explicit budgets for evaluated runs, checks module/User Simulator model consistency, and writes `episodes.jsonl`, `request_events.jsonl`, `cost_ledger.json`, and `run_summary.json` incrementally.
+- Host and pinned tau2 Python 3.12.16 suites each pass 34 tests. DeepSeek API calls and key reads remain 0.
+- Paid smoke gate remains closed. The frozen candidate is retail task 5 plus airline task 2, seeds 0 and 1, all 16 configurations, 64 exploratory episodes. No statistical significance or algorithmic improvement claim is allowed.
+- Next executor must verify the final GitHub Actions run on the pushed SHA, recheck public pricing, and wait for explicit user approval before any provider request.

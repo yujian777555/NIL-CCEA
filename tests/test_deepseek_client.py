@@ -5,9 +5,12 @@ import httpx
 
 from nil_ccea.deepseek_client import (
     DeepSeekClient,
+    DeepSeekAPIError,
+    DeepSeekBudgetExceeded,
     DeepSeekResponseError,
     DeepSeekTimeoutError,
     ModelFingerprintTracker,
+    RequestBudget,
     estimate_cost,
     parse_json_content,
 )
@@ -107,6 +110,94 @@ class DeepSeekClientTests(unittest.TestCase):
         )
         client.complete([])
         self.assertEqual(len(network_client.calls), 2)
+        self.assertEqual(client.audit_events[0]["status"], "retry")
+        self.assertEqual(client.audit_events[1]["attempt"], 2)
+
+        uncertain_client = FakeHttpClient([httpx.ReadError("write may have completed"), FakeResponse(response_payload())])
+        client = DeepSeekClient(api_key="secret", http_client=uncertain_client, max_retries=1)
+        with self.assertRaises(Exception):
+            client.complete([])
+        self.assertEqual(len(uncertain_client.calls), 1)
+        self.assertEqual(client.audit_events[0]["delivery_status"], "unknown")
+
+    def test_server_error_is_delivery_unknown_and_not_retried(self):
+        fake = FakeHttpClient([FakeResponse({}, status_code=500), FakeResponse(response_payload())])
+        client = DeepSeekClient(api_key="secret", http_client=fake)
+        with self.assertRaises(DeepSeekAPIError):
+            client.complete([])
+        self.assertEqual(len(fake.calls), 1)
+
+    def test_budget_and_cache_hit_miss_cost(self):
+        budget = RequestBudget(
+            max_requests=1,
+            max_input_tokens=100,
+            max_output_tokens=20,
+            max_cost_usd=0.01,
+        )
+        payload = response_payload()
+        payload["usage"] = {
+            "prompt_tokens": 10,
+            "prompt_cache_hit_tokens": 8,
+            "prompt_cache_miss_tokens": 2,
+            "completion_tokens": 4,
+            "total_tokens": 14,
+        }
+        fake = FakeHttpClient([FakeResponse(payload), FakeResponse(payload)])
+        client = DeepSeekClient(
+            api_key="secret",
+            http_client=fake,
+            budget=budget,
+            max_retries=0,
+            max_output_tokens=20,
+        )
+        client.complete([])
+        with self.assertRaises(DeepSeekBudgetExceeded):
+            client.complete([])
+
+        episode_budget = RequestBudget(
+            max_requests=3,
+            max_input_tokens=1000,
+            max_output_tokens=1000,
+            max_cost_usd=1.0,
+            episode_max_requests=1,
+        )
+        client = DeepSeekClient(
+            api_key="secret",
+            http_client=FakeHttpClient([FakeResponse(response_payload()), FakeResponse(response_payload())]),
+            budget=episode_budget,
+            max_retries=0,
+        )
+        client.set_episode_context(episode_id="ep-1")
+        client.complete([])
+        with self.assertRaises(DeepSeekBudgetExceeded):
+            client.complete([])
+
+    def test_input_cap_and_audit_identity_are_fail_closed(self):
+        client = DeepSeekClient(
+            api_key="secret",
+            http_client=FakeHttpClient([FakeResponse(response_payload())]),
+            max_input_tokens=2,
+        )
+        client.set_episode_context(run_id="run-1", episode_id="ep-1", task_id="5", seed=0, configuration_id="cfg-0000", module="planner")
+        with self.assertRaises(DeepSeekBudgetExceeded):
+            client.complete([{"role": "user", "content": "too long"}])
+        event = client.audit_events[0]
+        self.assertEqual(event["status"], "infra_failed")
+        self.assertEqual(event["delivery_status"], "not_sent")
+        self.assertEqual(event["requested_model"], "deepseek-flash")
+        self.assertEqual(event["episode_id"], "ep-1")
+
+    def test_missing_model_identity_fails_closed(self):
+        payload = response_payload()
+        payload["model"] = None
+        payload["system_fingerprint"] = None
+        client = DeepSeekClient(
+            api_key="secret",
+            http_client=FakeHttpClient([FakeResponse(payload)]),
+            max_retries=0,
+        )
+        with self.assertRaises(Exception):
+            client.complete([])
 
     def test_fingerprint_tracker_and_cost(self):
         fake = FakeHttpClient([FakeResponse(response_payload())])

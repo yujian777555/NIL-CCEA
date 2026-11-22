@@ -116,3 +116,11 @@
 - A Phase 0D executor prompt was added. It is strictly no-API and requires independent review, code corrections, no-key regression tests, CI, and an explicit user approval request before any paid call.
 - Proposed smoke tasks are retail 5 and airline 2, selected by the deterministic first-listed-per-family rule from the locked test-task lists. The 64-episode smoke remains exploratory with two independent task clusters.
 - No paid API call, benchmark result, significance test, algorithmic performance gain, or novelty claim is recorded.
+## 2026-11-23 — Phase 0D independent review and accounting corrections
+
+- A separate read-only reviewer audited the Phase 0C DeepSeek client and tau2 runner against the Phase 0D executor prompt. The initial findings covered retry-policy mismatch, episode replay, delivery-unknown transport errors, in-memory request events, unenforced model identity, missing budgets, cache accounting, missing ENV reward handling, User Simulator consistency, and partial trajectory preservation.
+- The client now records one durable event per physical attempt with run and episode linkage, task, seed, configuration, module, request IDs, prompt hash, requested and returned model, fingerprint, delivery status, usage, actual cost, and conservative upper-bound cost. RequestBudget reserves the maximum retry profile before an outbound request and supports episode-scoped limits.
+- The runner no longer retries whole episodes. It writes raw episodes and request events incrementally, rebuilds a cost ledger after each episode, preserves partial trajectories, and quarantines the batch on model or fingerprint identity failure.
+- The declared 2,000 input-token limit is enforced with a conservative UTF-8 serialized-request byte bound covering messages, tools, response format, and tool choice. This is a fail-closed engineering bound and does not claim tokenizer-equivalent counts.
+- Host and pinned Python 3.12.16/tau2-bench v1.0.1 no-API suites each pass 34 tests. The pinned suite includes real tau2 classes and a 32-cell factorial runner. DeepSeek API calls remain 0 and no API key was read.
+- The 64-episode smoke remains exploratory and unauthorized. It uses retail task 5 and airline task 2, seeds 0/1, and all 16 configurations. No significance, performance gain, or novelty claim is made.

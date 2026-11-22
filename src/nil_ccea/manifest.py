@@ -112,8 +112,9 @@ def configuration_hash(
     decoding: dict[str, Any],
     protocol_version: str,
     runner_version: str,
+    module_overrides: dict[str, dict[str, Any]] | None = None,
 ) -> str:
-    modules = {
+    modules = module_overrides or {
         slot: module_specs[f"{slot}.{configuration[slot]}"].to_dict()
         for slot in SLOTS
     }
@@ -139,6 +140,7 @@ def build_run_manifest(
     runner_version: str = "0.1.0",
     mode: str = "mock",
     source_commit: str | None = None,
+    module_overrides: dict[str, dict[str, Any]] | None = None,
 ) -> RunManifest:
     module_specs = default_module_specs()
     config_id = configuration_id(configuration)
@@ -150,8 +152,9 @@ def build_run_manifest(
         decoding,
         protocol_version,
         runner_version,
+        module_overrides,
     )
-    modules = {
+    modules = module_overrides or {
         slot: module_specs[f"{slot}.{configuration[slot]}"].to_dict()
         for slot in SLOTS
     }

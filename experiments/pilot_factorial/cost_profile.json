@@ -41,7 +41,15 @@
   "max_infrastructure_retries_per_request": 1,
   "token_cap_per_request": {
     "input": 2000,
-    "output": 512
+    "output": 512,
+    "enforcement": "DeepSeekClient uses a conservative UTF-8 serialized-request byte bound. The bound is fail-closed and includes messages, response_format, tools, and tool_choice. It is no looser than the declared token cap."
+  },
+  "budget_enforcement": {
+    "pre_request_reservation": true,
+    "reservation_attempts": "max_retries + 1",
+    "episode_budget": "request, input-token, output-token, and cost caps are keyed by episode_id",
+    "raw_request_ledger": "request_events.jsonl",
+    "cost_ledger": "cost_ledger.json"
   },
   "declared_rate_profile_usd_per_million_tokens": {
     "input": 0.3,
