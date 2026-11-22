@@ -3,11 +3,11 @@
 **Repository:** https://github.com/yujian777555/NIL-CCEA
 **Branch:** `phase0b-adapter-statistical-corrections`
 **Phase 0C implementation baseline SHA:** `f97467b8dcfb60a3d36cfd6638cd4e507509bc4a`
-**Phase 0D current implementation SHA:** `7f07bbfd75927bb35a6cabd466799aded8c5fb57`
-**Latest GitHub Actions run:** `45046604660` — success
+**Phase 0D final implementation SHA:** `b1c197eb5973575ae2ffa7c5c4cfe0d0fc9bf3a9`
+**Latest Phase 0D GitHub Actions run:** `45046796585` — success
 **PR #2:** https://github.com/yujian777555/NIL-CCEA/pull/2 (open)
 **PR #1:** https://github.com/yujian777555/NIL-CCEA/pull/1 (open)
-**Authoritative prompt:** [docs/EXECUTOR_PROMPT_PHASE0D.md](EXECUTOR_PROMPT_PHASE0D.md)
+**Authoritative prompt:** [docs/EXECUTOR_PROMPT_PHASE0E.md](EXECUTOR_PROMPT_PHASE0E.md)
 
 ## User-selected model
 
@@ -89,3 +89,16 @@ The user has selected the model but has **not** authorized paid API calls. Keep 
 - Paid smoke gate remains closed. The frozen candidate is retail task 5 plus airline task 2, seeds 0 and 1, all 16 configurations, 64 exploratory episodes. No statistical significance or algorithmic improvement claim is allowed.
 - Next executor must verify the final GitHub Actions run on the pushed SHA, recheck public pricing, and wait for explicit user approval before any provider request.
 - Next-stage executor prompt: [docs/EXECUTOR_PROMPT_PHASE0E.md](EXECUTOR_PROMPT_PHASE0E.md).
+
+
+## Phase 0E handoff update — 2026-11-23
+
+- Reported Phase 0D final SHA: `b1c197eb5973575ae2ffa7c5c4cfe0d0fc9bf3a9`; GitHub PR #2 head matches; CI run `45046796585` passed.
+- Official DeepSeek documentation and pricing rechecked 2026-11-23; public values unchanged. The actual response model and fingerprint remain unverified until an explicitly approved first completion.
+- Pinned tau2 test split confirms retail task 5 and airline task 2 are both test tasks.
+- Retail task 5 has an open task metadata issue `issue_770466c1` about the retail domain allowing user-level actions without authentication. Assess its impact before final task freeze; do not silently change task IDs.
+- P0 preflight finding: tau2's stock UserSimulator uses `tau2.utils.llm_utils.generate` -> LiteLLM `completion()`. A string-level `llm="deepseek-flash"` check does not prove the user simulator uses the NIL-CCEA DeepSeekClient, RequestBudget, ledger, identity checks, or direct transport.
+- Implement a provider-backed tau2 half-duplex UserSimulator adapter/subclass using the same DeepSeekClient and shared RequestBudget as the four agent modules. Add fake-client tests and prove LiteLLM is not invoked.
+- Preflight review: [docs/PHASE0E_PREFLIGHT_REVIEW.md](PHASE0E_PREFLIGHT_REVIEW.md).
+- Authoritative prompt: [docs/EXECUTOR_PROMPT_PHASE0E.md](EXECUTOR_PROMPT_PHASE0E.md).
+- No API key read, no DeepSeek request, and no paid episode. The 64-episode smoke is not authorized.
