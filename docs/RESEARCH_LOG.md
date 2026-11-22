@@ -104,3 +104,15 @@
 - Host suite passes 29 tests with tau2 tests skipped when external tau2 is absent. Python 3.12.16 tau2 suite passes all 29 tests. DeepSeek API calls remain 0.
 - Real-runner no-API test executes 32 task-seed-configuration cells using real tau2 Orchestrator classes and local modules. The full 64-episode paid smoke remains unstarted.
 - GitHub Actions Phase 0C host workflow passes on final head `33db2fdf2603d6ba37975f82b3b9a9b0a90217b9`, run `44914720628`.
+
+
+## 2026-11-23 — Phase 0C closeout and Phase 0D preflight review
+
+- User-reported Phase 0C implementation completed at `f97467b8dcfb60a3d36cfd6638cd4e507509bc4a`; GitHub Actions run `44914883210` succeeded.
+- Reported evidence: 29 no-API tests passed in host and pinned Python 3.12.16/tau2 v1.0.1 environments; 32 real tau2 Orchestrator no-API cells; DeepSeek API calls 0.
+- PR #2 remains open and unmerged. GitHub review endpoints show no submitted review, no inline review threads, and no PR comments. External independent review remains pending; the executor's self-review is not independent.
+- Official DeepSeek docs were rechecked on 2026-11-23. They list `deepseek-flash`, served version DeepSeek-V4.1-Flash-1017, Chat Completions at `https://api.deepseek.com`, JSON Output, Tool Calls, disabled-thinking controls, and peak rates of $0.30/M cache-miss input, $0.006/M cache-hit input, and $1.20/M output. Public docs do not verify the actual response model/fingerprint for this account.
+- Preliminary read-only source inspection flagged retry-count mismatch, whole-episode replay, request audit events not durably linked to episodes, unenforced fingerprint identity, missing request/cost guards, and partial-trajectory loss on exceptions. These are review findings to reproduce and fix, not claims of benchmark failure.
+- A Phase 0D executor prompt was added. It is strictly no-API and requires independent review, code corrections, no-key regression tests, CI, and an explicit user approval request before any paid call.
+- Proposed smoke tasks are retail 5 and airline 2, selected by the deterministic first-listed-per-family rule from the locked test-task lists. The 64-episode smoke remains exploratory with two independent task clusters.
+- No paid API call, benchmark result, significance test, algorithmic performance gain, or novelty claim is recorded.
