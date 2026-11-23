@@ -4,7 +4,9 @@
 
 - Repository: https://github.com/yujian777555/NIL-CCEA
 - Branch: `phase0b-adapter-statistical-corrections`
-- PR #2 head SHA: `b1c197eb5973575ae2ffa7c5c4cfe0d0fc9bf3a9`
+- Phase 0D final code SHA: `b1c197eb5973575ae2ffa7c5c4cfe0d0fc9bf3a9`
+- Phase 0E User Simulator code SHA: `d7273064ad20f4452347ec0680c3ec1e14278f18`
+- User-reported final Phase 0E handoff SHA: `d63bf1bd0062bb99b86ba61240caa4658835b5e7` (current documentation head is tracked in STATUS.md)
 - PR #2 state: open, unmerged
 - Final Phase 0D workflow: run `45046796585`, conclusion `success`, on the reported final SHA
 - User-reported working tree: clean and pushed
@@ -34,7 +36,7 @@ Official sources:
 
 The published prices and model alias are unchanged from the cost profile. This is public-document verification only; the actual account response model and system fingerprint remain unverified until the first explicitly approved completion request.
 
-## 3. P0 blocker — stock tau2 UserSimulator bypasses the controlled DeepSeek client
+## 3. Historical P0 finding — stock tau2 UserSimulator bypass (resolved by Phase 0E adapter)
 
 Pinned source: tau2-bench v1.0.1, commit `fc0055dc4e0a316c3f83133267fbd6faaa770992`.
 
@@ -50,7 +52,7 @@ Observed source behavior:
 4. NIL-CCEA's current runner can accept `user.llm == "deepseek-flash"` as model metadata. However, budget binding and request-event draining only attach to an exposed `client`, `llm_client`, or `deepseek_client`.
 5. Therefore a stock tau2 `UserSimulator(llm="deepseek-flash")` may pass the string-level model check while its actual calls bypass the NIL-CCEA `DeepSeekClient`, shared `RequestBudget`, per-request ledger, fingerprint enforcement, and `trust_env=False` transport.
 
-This is a paid-run blocker. Model-name equality alone does not prove controlled provider execution.
+This was a paid-run blocker before the Phase 0E adapter. The provider-backed adapter is now implemented and tested; the remaining paid-run blocker is actual smoke-factory wiring and fail-closed validation of all five clients.
 
 ### Required correction
 
