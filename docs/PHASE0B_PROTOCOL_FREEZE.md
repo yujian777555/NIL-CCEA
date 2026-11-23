@@ -79,9 +79,9 @@ Token 上界仍为每 request 2,000 input + 512 output。DeepSeek 官方价格�
 - 高峰 output：1.20 USD / 1M tokens。
 - 峰时段：UTC 周一至周五 01:00–04:00、06:00–10:00（中国法定节假日除外）；其他时段费率减半。
 - 单 request 保守上界：`2000/1e6*0.30 + 512/1e6*1.20 = 0.0012144 USD`。
-- 单 episode 正常上界：`60 * 0.0012144 = 0.072864 USD`。
-- 64-episode exploratory smoke 正常上界：约 `4.6633 USD`；所有 request 均重试一次的极端上界约 `9.3266 USD`。
-- 384-episode pilot 正常上界：约 `27.9798 USD`；所有 request 均重试一次的极端上界约 `55.9596 USD`。
+- 单 episode 正常上界：`120 * 0.0012144 = 0.145728 USD`。
+- 64-episode exploratory smoke 正常上界：`9.326592 USD`；所有逻辑 request 均重试一次的极端上界：`18.653184 USD`。
+- 384-episode pilot 正常上界：`55.959552 USD`；所有逻辑 request 均重试一次的极端上界：`111.919104 USD`。
 
 以上使用高峰 cache-miss 费率，不依赖缓存折扣。实际成本必须由 DeepSeek 返回的 token usage 和实际账单核对。价格可能变化，付费执行前必须再次核验官方价格页面。
 
