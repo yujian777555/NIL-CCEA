@@ -3,12 +3,14 @@
 **Last updated:** 2026-11-23
 **Overall state:** PRE-EXPERIMENT
 **Current workstream:** Phase 0E.1 — smoke factory wiring, shared-budget enforcement, and protocol freeze
+**Current remote branch HEAD (docs-maintained):** `eb5e0538b2e00e9f6204a1c10c38d52d6de5b118`
+**Latest CI on current remote HEAD:** `45102591927` and `45102587599` — success
 **Active branch:** `phase0b-adapter-statistical-corrections`
 **Phase 0C implementation baseline SHA:** `f97467b8dcfb60a3d36cfd6638cd4e507509bc4a`
 **Phase 0D final implementation SHA:** `b1c197eb5973575ae2ffa7c5c4cfe0d0fc9bf3a9`
 **Latest Phase 0D GitHub Actions run:** `45046796585` — success
 **Phase 0E User Simulator adapter code SHA:** `d7273064ad20f4452347ec0680c3ec1e14278f18`
-**Latest verified Phase 0E code CI:** `45100451548` — success on adapter code SHA; final docs CI on d63bf1b: `45100563417` — success
+**Phase 0E adapter code CI:** `45100451548` — success on adapter code SHA; user-reported final handoff CI: `45100563417` — success; latest docs-maintenance CI on current HEAD: `45102591927` — success
 **PR #2:** https://github.com/yujian777555/NIL-CCEA/pull/2 (open, not merged)
 **PR #1:** https://github.com/yujian777555/NIL-CCEA/pull/1 (open, not merged)
 **Authoritative next prompt:** [docs/EXECUTOR_PROMPT_PHASE0E.md](docs/EXECUTOR_PROMPT_PHASE0E.md)
