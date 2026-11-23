@@ -121,3 +121,15 @@ I_{ij}=\frac{1}{4}\sum_z I_{ij}(z).
 | G3 Smoke | PASS（无 API） | mock 与真实 tau2 类的 no-API smoke 已通过 |
 | G4 Pilot | NOT STARTED | 禁止在 G3 和成本批准前运行 |
 | G5 Search | NOT STARTED | 禁止在交互测量可靠前实现完整搜索 |
+
+
+## 10. Phase 0E.1 provider request-bound correction — 2026-11-23
+
+The original pilot request estimate must be superseded by the four-module call graph. Every Agent response invokes Planner + Selector + one of Caller/Synthesizer (three model requests). Conservatively allow up to 30 Agent responses and 30 User Simulator responses per episode:
+
+- 90 Agent module requests + 30 User Simulator requests = 120 logical requests per episode.
+- With one retry per logical request: 240 physical request attempts per episode.
+- 64-episode exploratory smoke: 7,680 normal logical requests / 15,360 maximum physical attempts; $9.326592 no-retry / $18.653184 with one retry for every request.
+- 384-episode pilot: 46,080 normal logical requests / 92,160 maximum physical attempts; $55.959552 no-retry / $111.919104 with one retry for every request.
+
+These are conservative peak cache-miss estimates at 2,000 input + 512 output tokens per physical request. The $20 exploratory authorization ceiling is proposed but not granted; the separate $80 hard stop is not spending authorization. See `docs/PHASE0B_PROTOCOL_FREEZE.md` and `experiments/pilot_factorial/cost_profile.json` for the current machine-readable protocol.
