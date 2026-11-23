@@ -8,8 +8,8 @@
 **Phase 0E current implementation SHA:** `d7273064ad20f4452347ec0680c3ec1e14278f18`
 **Latest verified Phase 0E code CI:** `45100451548` — success; final documentation CI on reported d63bf1b: `45100563417` — success
 **Phase 0E.1 implementation SHA:** `bcc762e711815316dae17e4eef8bdbd4f2a815ee`
-**Phase 0E.1 final documentation head:** `bbf46d9688bd716c5bbdebc43fd5b8fb198e9193`
-**Latest Phase 0E.1 CI:** `45105192442` — success
+**Phase 0E.1 final documentation head:** `92a857c7e43a23462b5cee815662a1f89e81d24a`
+**Latest Phase 0E.1 CI:** `45105437778` — success
 **PR #2:** https://github.com/yujian777555/NIL-CCEA/pull/2 (open)
 **PR #1:** https://github.com/yujian777555/NIL-CCEA/pull/1 (open)
 **Authoritative prompt:** [docs/EXECUTOR_PROMPT_PHASE0E.md](EXECUTOR_PROMPT_PHASE0E.md)
