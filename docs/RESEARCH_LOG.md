@@ -147,3 +147,17 @@
 - Added `docs/PHASE0E_PREFLIGHT_REVIEW.md` and expanded `docs/EXECUTOR_PROMPT_PHASE0E.md` to require a provider-backed tau2 half-duplex UserSimulator adapter/subclass, shared budget and audit events, fake-client tests proving LiteLLM is not invoked, and task 5 issue impact assessment.
 - Updated STATUS, NEXT_STEPS, and HANDOFF to point to Phase 0E and record current SHA/CI.
 - No API key was read, no DeepSeek request was sent, and no paid episode was run. The 64-episode smoke remains NOT AUTHORIZED / NOT STARTED.
+
+
+## 2026-11-23 — Phase 0E.1 smoke-factory audit and protocol decisions
+
+- Verified the reported code/final SHA `d63bf1bd0062bb99b86ba61240caa4658835b5e7` as PR #2 head. PR #2 remains open/unmerged. GitHub Actions run `45100451548` on adapter code and `45100563417` on the final reported head both succeeded.
+- The provider-backed `DeepSeekTau2UserSimulator` is implemented and covered by the reported 39-test no-API suite (host: 39 passed, 12 tau2-dependent skips; pinned Python 3.12.16/tau2 v1.0.1: 39 passed). No API key was read and no DeepSeek request was sent.
+- Source-level inspection found that `build_deepseek_modules(client, configuration)` attaches one client instance to all four module wrappers. Since the runner sets module context on each slot, this can overwrite attribution. The paid factory must use four distinct module clients and a fifth distinct User Simulator client.
+- Source-level inspection found that `Tau2FactorialRunner` currently calls a no-argument `environment_factory()`. The 64-episode smoke mixes Retail 5 and Airline 2, so the runner needs task-aware domain environment selection with a fresh environment per episode.
+- The runner currently assigns the supplied RequestBudget where available but does not enforce object identity across all clients. Phase 0E.1 requires all five distinct clients to share one exact RequestBudget and one exact ModelFingerprintTracker, with fail-closed validation and per-role audit streams.
+- Corrected the request-count arithmetic from 60 to 120 logical requests per episode. Each Agent response calls Planner + Selector + one of Caller/Synthesizer (three requests); conservatively allow 30 Agent responses and 30 User Simulator responses. The 64-episode smoke therefore has 7,680 normal logical requests and 15,360 maximum physical attempts with one retry each.
+- Corrected 64-episode cost upper bounds to $9.326592 without retries and $18.653184 if every logical request is retried once. Proposed $20 spend ceiling is NOT AUTHORIZED; separate $80 hard stop remains a stop limit. Corrected 384-episode pilot bounds to $55.959552 / $111.919104.
+- Protocol decision: retain user-selected Retail task 5 unmodified for the exploratory smoke and disclose open issue `issue_770466c1`. Pinned RetailTools does not enforce authenticated-user state for user/order reads; the task reward_basis is DB + NL_ASSERTION, not ACTION. This smoke cannot support authentication, privacy, or policy-enforcement claims. See `docs/PHASE0E_PROTOCOL_DECISION.md`.
+- Updated `cost_profile.json`, `PHASE0E_PREFLIGHT_REVIEW.md`, `PHASE0B_PROTOCOL_FREEZE.md`, `PILOT_DESIGN_R1.md`, `STATUS.md`, `NEXT_STEPS.md`, and `HANDOFF.md`. Expanded `EXECUTOR_PROMPT_PHASE0E.md` with exact smoke-factory, mixed-domain, budget, identity, manifest, test, and approval requirements.
+- No paid smoke was run. Linkage-aware evolutionary search remains not started pending trustworthy interaction measurements.
