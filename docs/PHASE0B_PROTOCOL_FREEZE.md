@@ -64,10 +64,11 @@
 
 ### 调用上界
 
-- 每 episode 最多 30 个 agent request 和 30 个 user-simulator request，共 60 个正常 provider requests。
-- 每 request 最多一次基础设施 retry，retry 上界为 120 个 provider requests per episode。
-- 两 task exploratory smoke 使用 2 tasks × 2 seeds × 16 configurations = 64 episodes，正常上界 3,840 requests，含 retry 上界 7,680 requests。
-- 384-episode pilot 正常上界 23,040 requests，含 retry 上界 46,080 requests。
+- 每次 Agent 响应最多调用 Planner、Selector，以及 Caller/Synthesizer 之一，即最多 3 个模块请求。
+- 保守按每 episode 最多 30 次 Agent 响应和 30 次 User Simulator 响应计算：90 个 Agent 模块请求 + 30 个 User 请求 = 120 个正常逻辑请求。
+- 每个逻辑请求最多预留一次安全基础设施 retry，因此每 episode 最多预留 240 个物理请求尝试。
+- 两 task exploratory smoke 使用 2 tasks × 2 seeds × 16 configurations = 64 episodes，正常上界 7,680 个逻辑请求，含 retry 上界 15,360 个物理请求尝试。
+- 384-episode pilot 正常上界 46,080 个逻辑请求，含 retry 上界 92,160 个物理请求尝试。
 - 主终点评估使用 ENV，不计额外 LLM judge request。
 
 ### Token 和美元估算
@@ -88,7 +89,7 @@ Token 上界仍为每 request 2,000 input + 512 output。DeepSeek 官方价格�
 
 - exploratory smoke hard cap：`80 USD`；
 - formal pilot hard cap：`400 USD`；
-- 任意单 episode 触及 120 provider requests、出现两次连续基础设施失败、或配置 manifest 不一致时，停止该 episode 并保留失败记录；
+- 任意单 episode 触及 240 个物理请求预留、出现两次连续基础设施失败、或配置 manifest 不一致时，停止该 episode 并保留失败记录；
 - 达到 hard cap 前不启动下一 episode。达到 hard cap 后运行状态为 `BUDGET_EXHAUSTED`，不自动追加调用。
 - 真实调用前必须验证 provider 费率和模型可用性，并得到用户明确批准。
 
@@ -149,3 +150,12 @@ Official pricing as checked 2026-11-20:
 - See [DeepSeek Models & Pricing](https://api-docs.deepseek.com/quick_start/pricing/) and [Chat Completions API](https://api-docs.deepseek.com/api/create-chat-completion/).
 
 The prior OpenAI/GPT-4.1 and GPT-6 Luna price comparisons are historical only and do not define the active experiment configuration. This model selection does **not** authorize paid API calls. G4 remains NOT STARTED until the user explicitly approves the paid smoke after all preflight gates pass.
+
+
+## 11. Phase 0E.1 request-bound correction — 2026-11-23
+
+The previous Section 6 arithmetic counted one Agent request per Agent response. Source inspection of NIL-CCEA's four-module adapter shows that each Agent response invokes Planner + Selector + exactly one of Caller/Synthesizer. Therefore the corrected conservative upper bound is 90 Agent-module requests + 30 User Simulator requests = 120 logical requests per episode. With one retry reserved per logical request, the physical-attempt reservation is 240 per episode.
+
+The 64-episode exploratory smoke is therefore 7,680 normal logical requests / 15,360 maximum physical attempts, costing at most $9.326592 without retries / $18.653184 if every logical request is retried once. The 384-episode pilot is 46,080 normal logical requests / 92,160 maximum physical attempts, costing at most $55.959552 without retries / $111.919104 with one retry per logical request.
+
+The machine-readable source of current bounds is `experiments/pilot_factorial/cost_profile.json`. The $20 exploratory spend ceiling is proposed only and has not been authorized; the $80 hard stop remains separate and is not spending authorization.
