@@ -3,9 +3,10 @@
 **Last updated:** 2026-11-23
 **Overall state:** PRE-EXPERIMENT
 **Current workstream:** Phase 0E.1 — smoke factory wiring, shared-budget enforcement, and protocol freeze
-**Last verified handoff base before this status sync:** `81f89f38ef1adcb9dec5d081516572b3250bc5b1`
-**Latest verified CI:** `45102805659` — success on that handoff base
+**Last verified handoff base before this status sync:** `bbf46d9688bd716c5bbdebc43fd5b8fb198e9193`
+**Latest verified CI:** `45105192442` — success on the final pushed head
 **Phase 0E.1 current implementation SHA:** `bcc762e711815316dae17e4eef8bdbd4f2a815ee`
+**Phase 0E.1 final pushed documentation head:** `bbf46d9688bd716c5bbdebc43fd5b8fb198e9193`
 **Active branch:** `phase0b-adapter-statistical-corrections`
 **Phase 0C implementation baseline SHA:** `f97467b8dcfb60a3d36cfd6638cd4e507509bc4a`
 **Phase 0D final implementation SHA:** `b1c197eb5973575ae2ffa7c5c4cfe0d0fc9bf3a9`

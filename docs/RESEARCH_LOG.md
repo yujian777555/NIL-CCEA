@@ -167,3 +167,4 @@
 - Corrected bounds are 120 logical requests per episode, 240 physical reservations, 7,680 logical requests for 64 episodes, and 15,360 maximum physical attempts. Costs are `$9.326592` without retries and `$18.653184` with one retry per request.
 - Immutable manifest created at `experiments/pilot_factorial/manifests/phase0e1_smoke_prerun_bcc762e7118153.json` with hash `66132bb3e7f83661b5acecfd95340da37162734287be72a2baca3384324ff0de`.
 - Host and pinned no-API suites each pass 47 tests. API requests and key reads remain 0.
+- Final pushed documentation head: `bbf46d9688bd716c5bbdebc43fd5b8fb198e9193`; latest CI run `45105192442` succeeded.
