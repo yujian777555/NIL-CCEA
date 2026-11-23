@@ -85,7 +85,7 @@ The user has selected the model but has **not** authorized paid API calls. Keep 
 - Phase 0D code corrections are implemented locally. The independent read-only review is recorded in `docs/PHASE0D_INDEPENDENT_REVIEW.md`.
 - The DeepSeek client now enforces one safe retry maximum, delivery-unknown no-replay, input/request/cost reservation, model/fingerprint validation, cache-aware accounting, and per-attempt audit events.
 - The real tau2 runner now has no episode-level retry, preserves partial trajectories, fails closed on missing ENV reward, requires explicit budgets for evaluated runs, checks module/User Simulator model consistency, and writes `episodes.jsonl`, `request_events.jsonl`, `cost_ledger.json`, and `run_summary.json` incrementally.
-- Host and pinned tau2 Python 3.12.16 suites each pass 34 tests. DeepSeek API calls and key reads remain 0.
+- Host and pinned tau2 Python 3.12.16 suites each pass 39 tests. DeepSeek API calls and key reads remain 0.
 - Paid smoke gate remains closed. The frozen candidate is retail task 5 plus airline task 2, seeds 0 and 1, all 16 configurations, 64 exploratory episodes. No statistical significance or algorithmic improvement claim is allowed.
 - Next executor must verify the final GitHub Actions run on the pushed SHA, recheck public pricing, and wait for explicit user approval before any provider request.
 - Next-stage executor prompt: [docs/EXECUTOR_PROMPT_PHASE0E.md](EXECUTOR_PROMPT_PHASE0E.md).
@@ -98,7 +98,8 @@ The user has selected the model but has **not** authorized paid API calls. Keep 
 - Pinned tau2 test split confirms retail task 5 and airline task 2 are both test tasks.
 - Retail task 5 has an open task metadata issue `issue_770466c1` about the retail domain allowing user-level actions without authentication. Assess its impact before final task freeze; do not silently change task IDs.
 - P0 preflight finding: tau2's stock UserSimulator uses `tau2.utils.llm_utils.generate` -> LiteLLM `completion()`. A string-level `llm="deepseek-flash"` check does not prove the user simulator uses the NIL-CCEA DeepSeekClient, RequestBudget, ledger, identity checks, or direct transport.
-- Implement a provider-backed tau2 half-duplex UserSimulator adapter/subclass using the same DeepSeekClient and shared RequestBudget as the four agent modules. Add fake-client tests and prove LiteLLM is not invoked.
+- Implemented `src/nil_ccea/tau2_user_simulator.py`, a provider-backed tau2 half-duplex UserSimulator adapter using the NIL-CCEA DeepSeekClient. Four pinned fake-client tests prove LiteLLM is not invoked, native user tools are validated, the shared budget can be attached, and user request events carry episode/module attribution.
+- The remaining integration step is to wire this adapter into the paid smoke factory and pass one shared RequestBudget to all module and user clients.
 - Preflight review: [docs/PHASE0E_PREFLIGHT_REVIEW.md](PHASE0E_PREFLIGHT_REVIEW.md).
 - Authoritative prompt: [docs/EXECUTOR_PROMPT_PHASE0E.md](EXECUTOR_PROMPT_PHASE0E.md).
 - No API key read, no DeepSeek request, and no paid episode. The 64-episode smoke is not authorized.

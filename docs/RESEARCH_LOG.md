@@ -127,6 +127,14 @@
 - Host and pinned Python 3.12.16/tau2-bench v1.0.1 no-API suites each pass 34 tests. The pinned suite includes real tau2 classes and a 32-cell factorial runner. DeepSeek API calls remain 0 and no API key was read.
 - The 64-episode smoke remains exploratory and unauthorized. It uses retail task 5 and airline task 2, seeds 0/1, and all 16 configurations. No significance, performance gain, or novelty claim is made.
 
+## 2026-11-23 — Phase 0E User Simulator adapter correction
+
+- Pinned tau2 source review confirmed that stock `UserSimulator._generate_next_message` calls tau2 LiteLLM `completion()`. The existing `llm="deepseek-flash"` metadata check did not establish use of the controlled client, shared budget, fingerprint enforcement, or request ledger.
+- Added `src/nil_ccea/tau2_user_simulator.py`. The adapter preserves tau2 half-duplex state and role flipping, routes plain text and native user-tool responses through NIL-CCEA `DeepSeekClient`, validates user tool arguments against tau2 `Tool.params`, and exposes the inspectable `client` and `llm` attributes required by the runner.
+- Added four pinned tau2 fake-client tests plus one runner integration test. They prove the LiteLLM generation path is not invoked, user tool calls preserve tau2 semantics, a shared RequestBudget can be attached, a real client event is linked to `module=user_simulator` and an episode, and the environment-aware user factory receives the shared budget and context.
+- Retail task 5 source inspection confirmed the selected task uses user and order lookup methods that lack an authentication-state check in the pinned retail tools. This is a material task-quality risk documented as `issue_770466c1`. The task remains frozen pending an explicit protocol decision, with no silent substitution.
+- The paid smoke factory still requires explicit adapter construction and shared-budget wiring. No API key was read and no DeepSeek request was sent.
+
 
 ## 2026-11-23 — Phase 0E preflight audit
 

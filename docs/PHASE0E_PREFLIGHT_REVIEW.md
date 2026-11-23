@@ -9,7 +9,7 @@
 - Final Phase 0D workflow: run `45046796585`, conclusion `success`, on the reported final SHA
 - User-reported working tree: clean and pushed
 - No DeepSeek API request has been made; no API key has been read.
-- Phase 0D no-API evidence: 34 host tests passed (7 tau2-dependent tests skipped on host), 34 passed under Python 3.12.16 + tau2 v1.0.1, and 32 real tau2 Orchestrator factorial cells passed.
+- Phase 0D no-API evidence: 39 host tests passed (12 tau2-dependent tests skipped on host), 39 passed under Python 3.12.16 + tau2 v1.0.1, and 32 real tau2 Orchestrator factorial cells passed.
 
 ## 2. Official DeepSeek documentation rechecked
 
@@ -120,7 +120,7 @@ These bounds are valid only if the request/token caps and one-safe-retry policy 
 | DeepSeek public docs and pricing | PASS, checked 2026-11-23 |
 | Retail 5 / Airline 2 test-split membership | PASS |
 | Retail task 5 known issue impact | NEEDS REVIEW |
-| Provider-backed User Simulator using shared DeepSeekClient | BLOCKED |
+| Provider-backed User Simulator using shared DeepSeekClient | IMPLEMENTED; smoke-factory wiring pending |
 | Actual returned model/fingerprint | NOT VERIFIED; requires first approved live request |
 | Paid 64-episode smoke | NOT AUTHORIZED / NOT STARTED |
 | Linkage-aware evolutionary search | NOT STARTED |
@@ -130,3 +130,32 @@ These bounds are valid only if the request/token caps and one-safe-retry policy 
 Fix the provider-backed User Simulator integration and complete the retail task 5 issue-impact assessment. Then rerun all no-API tests and CI, refresh the pre-run manifest and cost profile, and present the exact 64-episode approval request to the user.
 
 No DeepSeek request, API-key read, paid episode, significance test, algorithmic performance claim, or novelty claim is authorized by this review.
+
+## 8. No-API implementation update
+
+The provider-backed adapter is implemented in `src/nil_ccea/tau2_user_simulator.py`.
+
+- `DeepSeekTau2UserSimulator` preserves tau2 half-duplex `UserState` and message-role flipping.
+- Every completion routes through the injected NIL-CCEA `DeepSeekClient`.
+- Native user tool calls use tau2 `Tool.openai_schema` and are validated through `Tool.params` before becoming `UserMessage` tool calls.
+- The adapter exposes `llm="deepseek-flash"` and `client`, so the runner can bind the shared `RequestBudget`, episode context, and request ledger.
+- The runner's existing user-client binding and event draining attach `module=user_simulator` to the same episode ledger.
+- Four pinned tau2 fake-client tests pass. They prove the stock LiteLLM generation function is not invoked, plain text and native tool calls preserve tau2 semantics, a shared budget can be attached, and a real client event is linked to `user_simulator` and an episode. A fifth pinned integration test proves `Tau2FactorialRunner.user_factory_with_environment` receives the episode environment and binds the shared budget and user context.
+
+The adapter is an implementation and no-API verification milestone. The paid smoke factory still needs to construct this adapter explicitly through `Tau2FactorialRunner.user_factory_with_environment` and pass the same `RequestBudget` to all four module clients and the user client.
+
+## 9. Retail task 5 impact assessment
+
+The pinned task 5 evaluation path requires `find_user_id_by_name_zip`, `get_user_details`, `get_order_details`, `get_product_details`, and `return_delivered_order_items`. The pinned retail tool implementations expose the user and order lookups without a stored authentication-state check. This matches the open `issue_770466c1` metadata and makes the issue relevant to the selected task's environment semantics.
+
+The task remains in the frozen candidate because the user explicitly selected retail 5 and the task is present in the pinned test split. The issue is disclosed in the pre-run gate and must receive an explicit protocol decision before the manifest is frozen. No task was silently substituted and no environment source was modified.
+
+## 10. Updated gate decision
+
+| Gate | State |
+|---|---|
+| Provider-backed User Simulator code | IMPLEMENTED |
+| User Simulator no-API tests | PASS, 4 pinned tests |
+| Paid smoke factory wiring | NEEDS INTEGRATION CHECK |
+| Retail task 5 authentication issue | MATERIAL RISK, USER PROTOCOL DECISION REQUIRED |
+| Paid 64-episode smoke | NOT AUTHORIZED / NOT STARTED |

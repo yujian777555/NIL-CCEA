@@ -72,9 +72,9 @@ Existing hard caps remain $80 exploratory and $400 pilot. Recheck prices immedia
 | G0 Literature | PASS |
 | G1 Environment | PASS for pinned tau2 and reported no-key integration |
 | G2 Public provider docs | PASS, rechecked 2026-11-23 |
-| G2 User Simulator shared client/budget | NEEDS_REVISION |
-| G2 Retail task 5 issue impact | NEEDS_REVIEW |
-| G3 No-API integration | PASS, 34 tests in host and pinned tau2 environments |
+| G2 User Simulator shared client/budget | IMPLEMENTED, integration check pending |
+| G2 Retail task 5 issue impact | MATERIAL RISK, protocol decision pending |
+| G3 No-API integration | PASS, 39 tests in host and pinned tau2 environments |
 | G3 Real-runner readiness | PASS for no-API scope, 32 real tau2 Orchestrator cells |
 | G4 Paid exploratory smoke | NOT AUTHORIZED / NOT STARTED |
 | G5 Linkage-aware evolutionary search | NOT STARTED |
@@ -88,7 +88,7 @@ No real benchmark performance, statistical significance, algorithmic improvement
 - Every physical request attempt now records episode linkage, task and seed, configuration, module, attempt number, client request ID, prompt hash, requested model, returned model, system fingerprint, usage, actual cost, conservative cost upper bound, and delivery status. The tau2 runner writes `request_events.jsonl` and `cost_ledger.json` incrementally.
 - Model identity is enforced on every parsed completion. Missing or changed identity quarantines the batch. Real ENV execution requires an explicit `RequestBudget`, four provider-backed module clients, and an inspectable DeepSeek Flash User Simulator.
 - The client enforces the declared input cap with a conservative UTF-8 serialized-request bound and reserves the maximum physical attempts before each request. Cache hit and miss usage is retained separately.
-- Host no-API suite passes 34 tests. Pinned Python 3.12.16 with tau2-bench v1.0.1 passes the same 34 tests, including the real tau2 Orchestrator 32-cell factorial check. DeepSeek API calls remain 0.
+- Host no-API suite passes 39 tests. Pinned Python 3.12.16 with tau2-bench v1.0.1 passes the same 39 tests, including the real tau2 Orchestrator 32-cell factorial check. DeepSeek API calls remain 0.
 - These results establish engineering readiness only. The 64-episode smoke remains exploratory and has no significance or performance claim.
 
 
@@ -113,7 +113,7 @@ No real benchmark performance, statistical significance, algorithmic improvement
 | G2 Public provider docs | PASS on 2026-11-23 |
 | G2 Live returned model/fingerprint | NOT VERIFIED; requires first approved completion |
 | G2 Runner/accounting/retry contract | PASS for no-API code path; live identity unverified |
-| G3 No-API integration | PASS, 34 host and 34 pinned tau2 tests |
+| G3 No-API integration | PASS, 39 host and 39 pinned tau2 tests |
 | G3 Real-runner readiness | PASS for no-API scope only |
 | External independent review | PENDING |
 | G4 Paid exploratory smoke | NOT STARTED; no approval granted |
@@ -133,3 +133,10 @@ The $80 smoke hard cap is a stop limit, not spending authorization. Current cons
 - Preflight review: [docs/PHASE0E_PREFLIGHT_REVIEW.md](docs/PHASE0E_PREFLIGHT_REVIEW.md).
 - Authoritative next prompt: [docs/EXECUTOR_PROMPT_PHASE0E.md](docs/EXECUTOR_PROMPT_PHASE0E.md).
 - No DeepSeek API request has been sent and no API key has been read. Paid smoke remains NOT AUTHORIZED / NOT STARTED.
+
+## Phase 0E implementation update
+
+- Added `src/nil_ccea/tau2_user_simulator.py`, a tau2-compatible half-duplex adapter backed by NIL-CCEA `DeepSeekClient`.
+- Added four no-API tests covering LiteLLM bypass, plain-text generation, native user-tool validation, shared budget attachment, and episode-linked user request events.
+- Host suite now passes 39 tests with tau2-dependent tests skipped. Pinned Python 3.12.16 + tau2-bench v1.0.1 passes all 39 tests.
+- The adapter is ready for explicit smoke-factory wiring. Retail task 5 remains selected and carries a material authentication-enforcement issue that requires a protocol decision before the pre-run manifest is frozen.

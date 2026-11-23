@@ -95,7 +95,8 @@
   "real_api_calls_started": 0,
   "paid_smoke_approval": "NOT_GRANTED",
   "user_simulator_preflight": {
-    "status": "BLOCKED_PENDING_PROVIDER_BACKED_TAU2_ADAPTER",
-    "note": "Stock tau2 UserSimulator uses LiteLLM generate() and must be replaced by a tau2-compatible adapter backed by NIL-CCEA DeepSeekClient and shared RequestBudget before paid smoke."
+    "status": "IMPLEMENTED_PENDING_SMOKE_FACTORY_WIRING",
+    "adapter": "src/nil_ccea/tau2_user_simulator.py",
+    "note": "Stock tau2 UserSimulator uses LiteLLM generate(). NIL-CCEA now provides a tau2-compatible adapter backed by DeepSeekClient and shared RequestBudget. The paid smoke factory must explicitly construct it and pass the shared budget before approval."
   }
 }

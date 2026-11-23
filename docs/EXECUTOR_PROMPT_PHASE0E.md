@@ -157,3 +157,7 @@ The 64-episode smoke has only two task clusters. It is strictly exploratory: ver
 After a valid smoke, the next research stage is a separately approved 12-task × 2-seed × 16-configuration study (384 episodes) to estimate task-level interaction variance. Only then proceed to Linkage Learning and Linkage-aware Cooperative Co-evolution under equal evaluation budgets.
 
 Do not implement the full evolutionary optimizer before trustworthy interaction measurements exist. Do not stop the research because one task or integration needs revision; diagnose and continue without fabricating evidence.
+
+## 2026-11-23 implementation update
+
+The provider-backed tau2 User Simulator adapter is implemented at `src/nil_ccea/tau2_user_simulator.py`. Four pinned fake-client tests plus one runner integration test pass and demonstrate that stock tau2 LiteLLM generation is bypassed, native user-tool calls are locally validated, shared budgets can be attached, user request events carry episode/module attribution, and the environment-aware factory receives the shared budget and context. The remaining gate is explicit smoke-factory wiring with one shared `RequestBudget` for all module and user clients. Retail task 5 remains in the frozen candidate with `issue_770466c1` disclosed as a material authentication-enforcement risk requiring a protocol decision before manifest freeze.

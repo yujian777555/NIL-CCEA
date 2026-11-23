@@ -30,6 +30,7 @@ class Tau2FactorialRunner:
         environment_factory: Callable[[], Any],
         user_factory: Callable[[Any], Any],
         module_factory: Callable[[dict[str, int]], dict[str, Any]],
+        user_factory_with_environment: Callable[[Any, Any], Any] | None = None,
         output_dir: str | Path | None = None,
         max_steps: int = 30,
         max_errors: int = 10,
@@ -41,6 +42,7 @@ class Tau2FactorialRunner:
         self.environment_factory = environment_factory
         self.user_factory = user_factory
         self.module_factory = module_factory
+        self.user_factory_with_environment = user_factory_with_environment
         self.output_dir = Path(output_dir) if output_dir is not None else None
         self.max_steps = max_steps
         self.max_errors = max_errors
@@ -96,7 +98,10 @@ class Tau2FactorialRunner:
             task_version=self.task_version,
             task_family=environment.get_domain_name(),
         )
-        user = self.user_factory(task)
+        if self.user_factory_with_environment is not None:
+            user = self.user_factory_with_environment(task, environment)
+        else:
+            user = self.user_factory(task)
         self._bind_user_runtime_controls(user)
         run_id = str(uuid.uuid4())
         for slot, module in modules.items():
@@ -312,7 +317,7 @@ class Tau2FactorialRunner:
             or getattr(user_client, "max_output_tokens", 512) != 512
         ):
             raise Tau2RunnerError("User Simulator decoding 配置不一致")
-        if user_client is not None and getattr(user_client, "base_url", "https://api.deepseek.com") not in module_bases:
+        if module_bases and user_client is not None and getattr(user_client, "base_url", "https://api.deepseek.com") not in module_bases:
             raise Tau2RunnerError("User Simulator base URL 与模块不一致")
 
     @staticmethod

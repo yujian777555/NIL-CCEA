@@ -92,7 +92,7 @@ Smoke task candidate: retail task 5 + airline task 2, selected deterministically
 # Phase 0D closeout state
 
 - Local Phase 0D code corrections and independent read-only review are complete. See `docs/PHASE0D_INDEPENDENT_REVIEW.md`.
-- Host and pinned tau2 Python 3.12.16 no-API suites each pass 34 tests. The pinned suite exercises real tau2 v1.0.1 classes and a 32-cell factorial runner.
+- Host and pinned tau2 Python 3.12.16 no-API suites each pass 39 tests. The pinned suite exercises real tau2 v1.0.1 classes and a 32-cell factorial runner.
 - DeepSeek API calls remain 0. No API key was read. The 64-episode smoke remains blocked until the user grants explicit paid-run approval.
 - Before approval, verify provider pricing again, construct a provider-backed User Simulator exposing `deepseek-flash`, generate the retail-5 and airline-2 pre-run manifest, and set a `RequestBudget` sized for the chosen retry profile.
 - After approval, run only the frozen exploratory smoke, stop on the first model or fingerprint mismatch, preserve all raw artifacts, and report descriptive interaction estimates without significance or performance claims.
@@ -101,13 +101,12 @@ Smoke task candidate: retail task 5 + airline task 2, selected deterministically
 
 ## Phase 0E — current blockers and exact next actions
 
-1. Implement a tau2-compatible provider-backed User Simulator subclass/adapter. The pinned stock tau2 UserSimulator uses tau2's LiteLLM `generate()` path, so merely setting `llm="deepseek-flash"` bypasses NIL-CCEA's shared DeepSeekClient, RequestBudget, request ledger, fingerprint validation, and direct HTTP transport.
-2. Make user-simulator requests use the same RequestBudget, model alias, base URL, decoding, retry semantics, and durable request ledger as the four agent modules.
-3. Add fake-client tests proving the stock LiteLLM generation function is not used and that user calls are logged as `user_simulator`.
-4. Review retail task 5's open tau2 issue `issue_770466c1` about missing authentication enforcement. Both retail 5 and airline 2 are in the pinned test split, but do not silently replace retail 5. Record impact and request a protocol amendment if it should be changed.
-5. Re-run host tests, pinned Python 3.12.16/tau2 tests, 32-cell no-API Orchestrator integration, and CI.
-6. Build a new pre-run manifest with the actual final code SHA, protocol hash, task IDs, seeds, all 16 configurations, model alias, UserSimulator adapter, and RequestBudget profile.
-7. Only after these checks pass, ask the user for explicit approval. No API key read or provider request before approval.
+1. Wire `DeepSeekTau2UserSimulator` into the actual smoke factory through `Tau2FactorialRunner.user_factory_with_environment` and pass the same `RequestBudget` object to all four module clients and the user client.
+2. Keep the user adapter's episode context and request events in the same raw ledger as module calls.
+3. Review retail task 5's open tau2 issue `issue_770466c1` about missing authentication enforcement. Both retail 5 and airline 2 are in the pinned test split. Do not silently replace retail 5. Record impact and request a protocol amendment if it should be changed.
+4. Re-run host tests, pinned Python 3.12.16/tau2 tests, 32-cell no-API Orchestrator integration, and CI after the wiring change.
+5. Build a new pre-run manifest with the actual final code SHA, protocol hash, task IDs, seeds, all 16 configurations, model alias, UserSimulator adapter, and RequestBudget profile.
+6. Only after these checks pass, ask the user for explicit approval. No API key read or provider request before approval.
 
 ## Phase 0E current gate snapshot (2026-11-23)
 
@@ -116,7 +115,7 @@ Smoke task candidate: retail task 5 + airline task 2, selected deterministically
 - DeepSeek public docs/pricing: PASS; last checked 2026-11-23; no price change.
 - Task split membership: PASS for retail 5 and airline 2.
 - Retail task 5 known issue impact: NEEDS REVIEW.
-- Controlled provider-backed UserSimulator: BLOCKED until implemented and tested.
+- Controlled provider-backed UserSimulator: IMPLEMENTED and fake-client tested; smoke-factory wiring pending.
 - Actual response model/fingerprint: unverified until first approved completion.
 - Paid 64-episode smoke: NOT AUTHORIZED / NOT STARTED.
 - Linkage-aware evolutionary search: not started.

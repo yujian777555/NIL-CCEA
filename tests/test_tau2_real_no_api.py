@@ -2,6 +2,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 try:
     from tau2.data_model.message import MultiToolMessage, ToolMessage, UserMessage
@@ -9,11 +10,13 @@ try:
     from tau2.orchestrator.orchestrator import Orchestrator
     from tau2.environment.tool import as_tool
     from nil_ccea.contracts import Plan, Selection, ToolCallProposal
+    from nil_ccea.deepseek_client import DeepSeekResponse, RequestBudget
     from nil_ccea.factorial import generate_binary_configurations
     from nil_ccea.manifest import SLOTS
     from nil_ccea.mock_modules import build_mock_modules
     from nil_ccea.tau2_runner import Tau2FactorialRunner
     from nil_ccea.tau2_adapter import InvalidToolCallError, build_tau2_agent_class
+    from nil_ccea.tau2_user_simulator import DeepSeekTau2UserSimulator
 
     TAU2_AVAILABLE = True
 except ImportError:
@@ -344,6 +347,77 @@ class Tau2RealNoApiTests(unittest.TestCase):
         self.assertEqual(record["status"], "infra_failed")
         self.assertEqual(record["retry_count"], 0)
         self.assertEqual(len(calls), 1)
+
+    def test_runner_binds_shared_budget_and_environment_aware_user_factory(self):
+        class FakeUserClient:
+            model = "deepseek-flash"
+            temperature = 0.0
+            max_output_tokens = 512
+            base_url = "https://api.deepseek.com"
+            input_usd_per_million = 0.30
+            cached_input_usd_per_million = 0.006
+            output_usd_per_million = 1.20
+
+            def __init__(self):
+                self.budget = None
+                self.context = None
+
+            def set_episode_context(self, **context):
+                self.context = context
+
+            def complete(self, messages, **kwargs):
+                return DeepSeekResponse(
+                    request_id="user-run-1",
+                    model="deepseek-flash",
+                    system_fingerprint="fp-user-run-1",
+                    content="done ###STOP###",
+                    tool_calls=[],
+                    usage={
+                        "prompt_tokens": 5,
+                        "completion_tokens": 3,
+                        "total_tokens": 8,
+                        "prompt_cache_hit_tokens": 0,
+                        "prompt_cache_miss_tokens": 5,
+                    },
+                    raw_response={},
+                )
+
+            def drain_audit_events(self):
+                return []
+
+        fake_client = FakeUserClient()
+        budget = RequestBudget(
+            max_requests=100,
+            max_input_tokens=10000,
+            max_output_tokens=10000,
+            max_cost_usd=10.0,
+        )
+        seen_environment = []
+
+        def user_factory_with_environment(task, environment):
+            seen_environment.append(environment)
+            return DeepSeekTau2UserSimulator(
+                client=fake_client,
+                instructions="stop after greeting",
+            )
+
+        with patch("tau2.user.user_simulator.get_global_user_sim_guidelines", return_value="guidelines"):
+            runner = Tau2FactorialRunner(
+                tau2_source_commit="fc0055dc4e0a316c3f83133267fbd6faaa770992",
+                task_version="v1.0.1",
+                environment_factory=get_environment,
+                user_factory=lambda task: (_ for _ in ()).throw(AssertionError("fallback user factory used")),
+                user_factory_with_environment=user_factory_with_environment,
+                module_factory=build_mock_modules,
+                max_steps=2,
+                evaluate=False,
+                request_budget=budget,
+            )
+            record = runner.run_episode(get_tasks()[0], 0, {slot: 0 for slot in SLOTS})
+        self.assertEqual(record["status"], "success")
+        self.assertEqual(len(seen_environment), 1)
+        self.assertIs(fake_client.budget, budget)
+        self.assertEqual(fake_client.context["module"], "user_simulator")
 
 
 if __name__ == "__main__":
