@@ -125,7 +125,7 @@ No real benchmark performance, statistical significance, algorithmic improvement
 | G4 Paid exploratory smoke | NOT STARTED; no approval granted |
 | G5 Linkage-aware evolutionary search | NOT STARTED |
 
-The $80 smoke hard cap is a stop limit, not spending authorization. Current conservative 64-episode estimates ($4.663296 without retries; $9.326592 with one retry on every request) are valid only if the 2,000-input/512-output token limits and one-retry-per-request rule are enforced. No algorithmic improvement, statistical significance, or novelty claim is made.
+Historical 60-request cost estimates ($4.663296 without retries; $9.326592 with one retry on every request) are superseded by the Phase 0E.1 source-level correction: 120 logical requests per episode, $9.326592 without retries and $18.653184 with one retry for every request. The $80 smoke hard cap is a stop limit, not spending authorization. No algorithmic improvement, statistical significance, or novelty claim is made.
 
 
 ## 2026-11-23 — Phase 0E preflight findings
@@ -145,7 +145,7 @@ The $80 smoke hard cap is a stop limit, not spending authorization. Current cons
 - Added `src/nil_ccea/tau2_user_simulator.py`, a tau2-compatible half-duplex adapter backed by NIL-CCEA `DeepSeekClient`.
 - Added four no-API tests covering LiteLLM bypass, plain-text generation, native user-tool validation, shared budget attachment, and episode-linked user request events.
 - Host suite now passes 39 tests with tau2-dependent tests skipped. Pinned Python 3.12.16 + tau2-bench v1.0.1 passes all 39 tests.
-- The adapter is ready for explicit smoke-factory wiring. Retail task 5 remains selected and carries a material authentication-enforcement issue that requires a protocol decision before the pre-run manifest is frozen.
+- The adapter is ready for explicit smoke-factory wiring. Retail task 5 remains selected unchanged under the decision in docs/PHASE0E_PROTOCOL_DECISION.md; its authentication limitation must be disclosed in the pre-run manifest.
 
 
 ## 2026-11-23 — Phase 0E.1 takeover and protocol correction
