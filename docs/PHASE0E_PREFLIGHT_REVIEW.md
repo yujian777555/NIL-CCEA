@@ -102,13 +102,16 @@ The smoke remains diagnostic only and cannot support confirmatory statistical or
 Official prices rechecked 2026-11-23 and unchanged:
 
 - Per request upper bound: $0.0012144, assuming 2,000 input and 512 output tokens at peak cache-miss prices.
-- 64 episodes × 60 normal requests = 3,840 normal requests.
-- One retry for every request: 7,680 physical requests.
-- No-retry upper bound: $4.663296.
-- Every request retried once: $9.326592.
+- Each Agent response invokes Planner + Selector + exactly one of Caller/Synthesizer: up to 3 module requests.
+- Conservatively allow up to 30 Agent responses and 30 User Simulator responses per episode: 90 + 30 = 120 logical requests.
+- With one retry reserved for every logical request: 240 physical attempts per episode.
+- 64 episodes: 7,680 normal logical requests / 15,360 maximum physical attempts.
+- No-retry upper bound: $9.326592.
+- Every request retried once: $18.653184.
+- Proposed spend ceiling: $20.00, NOT AUTHORIZED.
 - Exploratory hard stop: $80; this is not authorization to spend $80.
 
-These bounds are valid only if the request/token caps and one-safe-retry policy are enforced across both agent modules and User Simulator. The User Simulator integration blocker above means the current end-to-end cost guarantee is not yet established.
+The previous 60-request-per-episode estimates ($4.663296 / $9.326592) undercounted the four-module call graph and are superseded. The corrected figures are conservative source-level bounds and must be enforced through one shared RequestBudget across five distinct clients.
 
 ## 6. Gate decision
 
@@ -119,15 +122,17 @@ These bounds are valid only if the request/token caps and one-safe-retry policy 
 | Final Phase 0D GitHub Actions | PASS, run 45046796585 |
 | DeepSeek public docs and pricing | PASS, checked 2026-11-23 |
 | Retail 5 / Airline 2 test-split membership | PASS |
-| Retail task 5 known issue impact | NEEDS REVIEW |
-| Provider-backed User Simulator using shared DeepSeekClient | IMPLEMENTED; smoke-factory wiring pending |
+| Retail task 5 known issue impact | DECIDED: RETAIN UNMODIFIED WITH DISCLOSURE |
+| Provider-backed User Simulator | IMPLEMENTED; smoke-factory wiring pending |
+| Five distinct clients / shared budget and identity tracker | NEEDS IMPLEMENTATION + FAIL-CLOSED VALIDATION |
+| Mixed Retail/Airline environment selection | NEEDS IMPLEMENTATION |
 | Actual returned model/fingerprint | NOT VERIFIED; requires first approved live request |
 | Paid 64-episode smoke | NOT AUTHORIZED / NOT STARTED |
 | Linkage-aware evolutionary search | NOT STARTED |
 
 ## 7. Next executable action
 
-Fix the provider-backed User Simulator integration and complete the retail task 5 issue-impact assessment. Then rerun all no-API tests and CI, refresh the pre-run manifest and cost profile, and present the exact 64-episode approval request to the user.
+Implement the five-client smoke factory, shared RequestBudget and identity tracker, task-aware Retail/Airline environment selection, fail-closed runner checks, and immutable pre-run manifest. Retain Retail task 5 unmodified with the limitation in docs/PHASE0E_PROTOCOL_DECISION.md. Re-run all no-API tests and CI, then present the corrected 64-episode approval request.
 
 No DeepSeek request, API-key read, paid episode, significance test, algorithmic performance claim, or novelty claim is authorized by this review.
 
@@ -144,13 +149,13 @@ Current implementation commit: `d7273064ad20f4452347ec0680c3ec1e14278f18`. Final
 - The runner's existing user-client binding and event draining attach `module=user_simulator` to the same episode ledger.
 - Four pinned tau2 fake-client tests pass. They prove the stock LiteLLM generation function is not invoked, plain text and native tool calls preserve tau2 semantics, a shared budget can be attached, and a real client event is linked to `user_simulator` and an episode. A fifth pinned integration test proves `Tau2FactorialRunner.user_factory_with_environment` receives the episode environment and binds the shared budget and user context.
 
-The adapter is an implementation and no-API verification milestone. The paid smoke factory still needs to construct this adapter explicitly through `Tau2FactorialRunner.user_factory_with_environment` and pass the same `RequestBudget` to all four module clients and the user client.
+The adapter is an implementation and no-API verification milestone. The paid smoke factory still needs to construct this adapter explicitly through `Tau2FactorialRunner.user_factory_with_environment`, use a distinct user client and four distinct module clients, and pass the same RequestBudget and ModelFingerprintTracker objects to all five clients.
 
 ## 9. Retail task 5 impact assessment
 
 The pinned task 5 evaluation path requires `find_user_id_by_name_zip`, `get_user_details`, `get_order_details`, `get_product_details`, and `return_delivered_order_items`. The pinned retail tool implementations expose the user and order lookups without a stored authentication-state check. This matches the open `issue_770466c1` metadata and makes the issue relevant to the selected task's environment semantics.
 
-The task remains in the frozen candidate because the user explicitly selected retail 5 and the task is present in the pinned test split. The issue is disclosed in the pre-run gate and must receive an explicit protocol decision before the manifest is frozen. No task was silently substituted and no environment source was modified.
+The task remains in the frozen candidate because the user explicitly selected retail 5 and the task is present in the pinned test split. Protocol decision: retain the task unmodified for this exploratory smoke, disclose that authentication is not enforced at the tool layer, and make no authentication/privacy/safety claim. The task's reward_basis is DB + NL_ASSERTION, not ACTION, so ENV reward does not guarantee authentication-sequence compliance. See docs/PHASE0E_PROTOCOL_DECISION.md.
 
 ## 10. Updated gate decision
 
@@ -158,6 +163,48 @@ The task remains in the frozen candidate because the user explicitly selected re
 |---|---|
 | Provider-backed User Simulator code | IMPLEMENTED |
 | User Simulator no-API tests | PASS, 4 pinned tests |
-| Paid smoke factory wiring | NEEDS INTEGRATION CHECK |
-| Retail task 5 authentication issue | MATERIAL RISK, USER PROTOCOL DECISION REQUIRED |
+| Paid smoke factory wiring | NOT YET IMPLEMENTED |
+| Retail task 5 authentication issue | DECIDED: RETAIN UNMODIFIED WITH EXPLICIT LIMITATION |
 | Paid 64-episode smoke | NOT AUTHORIZED / NOT STARTED |
+
+
+## 11. Phase 0E.1 source-level runner and budget audit — 2026-11-23
+
+The adapter implementation is complete, but the paid smoke factory is not yet ready. The current runner and module factory reveal three integration requirements:
+
+1. **Mixed-domain environment selection:** `Tau2FactorialRunner._run_episode_once` currently calls `environment_factory()` without the task. The 64-episode candidate mixes Retail task 5 and Airline task 2, so the smoke factory must provide task-aware environment selection using `task.user_scenario.instructions.domain`. Each episode must receive a fresh domain-specific environment.
+2. **Distinct module clients:** `build_deepseek_modules(client, configuration)` currently attaches one client object to all four module wrappers. The runner sets the client episode context once per slot, so a shared client would have its module attribution overwritten by the last slot. The paid factory must create four distinct module clients plus a fifth distinct User Simulator client.
+3. **Fail-closed budget/identity checks:** the runner currently assigns the shared budget when a client exposes a budget attribute, but it does not require all five clients to reference the exact same RequestBudget object or ModelFingerprintTracker. Strengthen validation so a stock UserSimulator, missing client, separate budget, missing tracker, or shared module client is rejected for `evaluate=True`.
+
+### Corrected call-count derivation
+
+The pinned NIL-CCEA agent adapter calls Planner and Selector on every Agent response, then calls exactly one of Caller or Synthesizer. Thus each Agent response can produce three model requests. With max_steps=30, a conservative upper bound is 30 Agent responses and 30 User Simulator responses per episode:
+
+- 90 Agent-module requests + 30 User Simulator requests = 120 logical requests per episode.
+- One retry per logical request reserves 240 physical attempts per episode.
+- 64 episodes: 7,680 normal logical requests; 15,360 maximum physical attempts.
+- At $0.0012144 per request: $9.326592 no-retry upper bound; $18.653184 if every request is retried once.
+- Proposed authorization ceiling: $20.00, NOT GRANTED. Separate $80 hard stop remains a stop limit only.
+
+The earlier 60-request-per-episode figures are superseded. Updated machine-readable values are in `experiments/pilot_factorial/cost_profile.json`.
+
+## 12. Retail task 5 protocol decision
+
+The user-selected Retail task 5 remains in the smoke unchanged. Pinned RetailTools does not enforce authenticated-user state for `get_user_details` or `get_order_details`; the policy nevertheless requires authentication. Since task 5 reward_basis is DB + NL_ASSERTION and not ACTION, ENV reward does not independently guarantee authentication-sequence compliance. This smoke may assess module interaction and transaction-state behavior, but it cannot support authentication, privacy, or policy-enforcement claims. The decision and future confirmatory options are recorded in `docs/PHASE0E_PROTOCOL_DECISION.md`.
+
+## 13. Current gate snapshot
+
+| Gate | State |
+|---|---|
+| Phase 0D accounting/retry fixes | PASS per no-API tests |
+| Provider-backed User Simulator adapter | IMPLEMENTED; 39-test report includes adapter coverage |
+| Five distinct provider clients | NOT YET WIRED |
+| Shared RequestBudget identity across five clients | NOT YET ENFORCED |
+| Shared ModelFingerprintTracker across five clients | NOT YET ENFORCED |
+| Mixed Retail/Airline environment factory | NOT YET WIRED |
+| Retail task 5 protocol decision | RETAIN UNMODIFIED WITH DISCLOSURE |
+| Corrected request/cost upper bounds | RECORDED; factory enforcement pending |
+| Immutable 64-episode pre-run manifest | NOT YET FROZEN |
+| GitHub Actions on d63bf1b | PASS, run 45100563417 |
+| Actual provider model/fingerprint | NOT VERIFIED; first approved request only |
+| Paid smoke | NOT AUTHORIZED / NOT STARTED |
