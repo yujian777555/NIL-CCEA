@@ -2,13 +2,13 @@
 
 **Last updated:** 2026-11-23
 **Overall state:** PRE-EXPERIMENT
-**Current workstream:** Phase 0E — provider-backed User Simulator and final smoke preflight
+**Current workstream:** Phase 0E.1 — smoke factory wiring, shared-budget enforcement, and protocol freeze
 **Active branch:** `phase0b-adapter-statistical-corrections`
 **Phase 0C implementation baseline SHA:** `f97467b8dcfb60a3d36cfd6638cd4e507509bc4a`
 **Phase 0D final implementation SHA:** `b1c197eb5973575ae2ffa7c5c4cfe0d0fc9bf3a9`
 **Latest Phase 0D GitHub Actions run:** `45046796585` — success
-**Phase 0E current implementation SHA:** `d7273064ad20f4452347ec0680c3ec1e14278f18`
-**Latest Phase 0E GitHub Actions run:** `45100451548` — success
+**Phase 0E User Simulator adapter code SHA:** `d7273064ad20f4452347ec0680c3ec1e14278f18`
+**Latest verified Phase 0E code CI:** `45100451548` — success on adapter code SHA; final docs CI on d63bf1b: `45100563417` — success
 **PR #2:** https://github.com/yujian777555/NIL-CCEA/pull/2 (open, not merged)
 **PR #1:** https://github.com/yujian777555/NIL-CCEA/pull/1 (open, not merged)
 **Authoritative next prompt:** [docs/EXECUTOR_PROMPT_PHASE0E.md](docs/EXECUTOR_PROMPT_PHASE0E.md)
@@ -40,9 +40,9 @@ Conservative budget uses peak cache-miss rates:
 
 At 2,000 input + 512 output tokens/request:
 - Request: $0.0012144
-- Episode (60 requests): $0.072864
-- 64-episode smoke: $4.663296; all requests retried once: $9.326592
-- 384-episode pilot: $27.979776; all requests retried once: $55.959552
+- Episode (120 logical requests): $0.145728; one retry for every request: $0.291456
+- 64-episode smoke (7,680 normal / 15,360 maximum physical attempts): $9.326592 no-retry; $18.653184 with one retry for every request
+- 384-episode pilot (46,080 normal / 92,160 maximum physical attempts): $55.959552 no-retry; $111.919104 with one retry for every request
 
 Existing hard caps remain $80 exploratory and $400 pilot. Recheck prices immediately before paid execution.
 
@@ -63,9 +63,11 @@ Existing hard caps remain $80 exploratory and $400 pilot. Recheck prices immedia
 
 ## Remaining pre-smoke blockers
 
-1. Replace the stock tau2 UserSimulator LiteLLM generation path with a provider-backed adapter using the NIL-CCEA DeepSeekClient and shared RequestBudget.
-2. Assess the open retail task 5 authentication-enforcement issue and record its impact; do not silently change the frozen task set.
-3. Re-run all no-API tests and CI, freeze a complete pre-run manifest, then obtain explicit user approval.
+1. Implement the five-client smoke factory: four distinct module clients plus one distinct User Simulator client.
+2. Enforce one shared RequestBudget and one shared ModelFingerprintTracker by object identity across all five clients.
+3. Add task-aware environment selection for Retail and Airline tasks in the same run.
+4. Freeze an immutable pre-run manifest with Retail task 5's disclosed authentication limitation.
+5. Re-run all no-API tests and CI, then obtain explicit user approval.
 
 ## Gate status
 
@@ -74,8 +76,10 @@ Existing hard caps remain $80 exploratory and $400 pilot. Recheck prices immedia
 | G0 Literature | PASS |
 | G1 Environment | PASS for pinned tau2 and reported no-key integration |
 | G2 Public provider docs | PASS, rechecked 2026-11-23 |
-| G2 User Simulator shared client/budget | IMPLEMENTED, integration check pending |
-| G2 Retail task 5 issue impact | MATERIAL RISK, protocol decision pending |
+| G2 User Simulator adapter | IMPLEMENTED, 39-test report includes coverage |
+| G2 five distinct clients/shared budget/tracker | NOT YET WIRED / NOT ENFORCED |
+| G2 mixed Retail/Airline environment factory | NOT YET WIRED |
+| G2 Retail task 5 issue impact | DECIDED: RETAIN UNMODIFIED WITH DISCLOSURE |
 | G3 No-API integration | PASS, 39 tests in host and pinned tau2 environments |
 | G3 Real-runner readiness | PASS for no-API scope, 32 real tau2 Orchestrator cells |
 | G4 Paid exploratory smoke | NOT AUTHORIZED / NOT STARTED |
@@ -142,3 +146,18 @@ The $80 smoke hard cap is a stop limit, not spending authorization. Current cons
 - Added four no-API tests covering LiteLLM bypass, plain-text generation, native user-tool validation, shared budget attachment, and episode-linked user request events.
 - Host suite now passes 39 tests with tau2-dependent tests skipped. Pinned Python 3.12.16 + tau2-bench v1.0.1 passes all 39 tests.
 - The adapter is ready for explicit smoke-factory wiring. Retail task 5 remains selected and carries a material authentication-enforcement issue that requires a protocol decision before the pre-run manifest is frozen.
+
+
+## 2026-11-23 — Phase 0E.1 takeover and protocol correction
+
+- Verified PR #2 head and reported final code SHA: `d63bf1bd0062bb99b86ba61240caa4658835b5e7`. PR #2 remains open and unmerged. Code CI `45100451548` and final-documentation CI `45100563417` both succeeded on the reported code/final heads.
+- User-reported no-API tests: host 39 passed with 12 tau2-dependent skips; pinned Python 3.12.16 + tau2-bench v1.0.1: 39 passed. DeepSeek requests and API-key reads remain 0.
+- Provider-backed `DeepSeekTau2UserSimulator` is implemented. Remaining work is the actual paid-smoke factory, not the adapter itself.
+- New source audit found that `build_deepseek_modules(client, configuration)` attaches one client object to all four module wrappers. Because the runner sets module context per slot, a single shared client can overwrite module attribution. The paid factory must use four distinct module clients plus a fifth distinct User Simulator client.
+- New source audit found that `Tau2FactorialRunner` calls `environment_factory()` without a task. The 64-episode run mixes Retail and Airline; the runner/factory must select a fresh environment by `task.user_scenario.instructions.domain`.
+- Strengthen fail-closed validation: all five clients must reference the exact same RequestBudget and ModelFingerprintTracker objects, while remaining distinct client objects.
+- Corrected the provider request upper bound from 60 to 120 logical requests per episode: each Agent response invokes Planner + Selector + Caller/Synthesizer (3 calls), conservatively allowing 30 Agent responses plus 30 User Simulator responses. The 64-episode smoke is 7,680 normal logical requests / 15,360 maximum physical attempts, costing $9.326592 without retries / $18.653184 with one retry on every request.
+- Proposed exploratory spend ceiling is $20.00, NOT AUTHORIZED. The separate $80 hard stop remains a stop limit, not spending authorization. Formal 384-episode pilot upper bound is $55.959552 without retries / $111.919104 with one retry per request.
+- Retail task 5 decision: retain the user-selected task unmodified for this exploratory smoke, explicitly disclose open issue `issue_770466c1`, and make no authentication/privacy/policy-enforcement claim. Its ENV reward basis is DB + NL_ASSERTION, not ACTION; tool-level authentication is not enforced. See `docs/PHASE0E_PROTOCOL_DECISION.md`.
+- Updated cost profile, Phase 0E preflight review, Phase 0B protocol freeze, and Pilot Design R1. Authoritative execution prompt: `docs/EXECUTOR_PROMPT_PHASE0E.md`.
+- No smoke factory has been executed, no API key has been read, and no provider request has been sent. Paid smoke remains NOT AUTHORIZED / NOT STARTED.
