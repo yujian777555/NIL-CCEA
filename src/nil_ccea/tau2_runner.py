@@ -12,7 +12,7 @@ from typing import Any, Callable
 from .manifest import SLOTS, build_run_manifest, canonical_json, configuration_id, sha256_text
 from .factorial import generate_binary_configurations, validate_complete_binary_configurations
 from .tau2_adapter import InvalidToolCallError, build_tau2_agent_class
-from .deepseek_client import DeepSeekIdentityError, RequestBudget
+from .deepseek_client import DeepSeekIdentityError, ModelFingerprintTracker, RequestBudget
 
 
 class Tau2RunnerError(RuntimeError):
@@ -28,6 +28,7 @@ class Tau2FactorialRunner:
         tau2_source_commit: str,
         task_version: str,
         environment_factory: Callable[[], Any],
+        environment_factory_with_task: Callable[[Any], Any] | None = None,
         user_factory: Callable[[Any], Any],
         module_factory: Callable[[dict[str, int]], dict[str, Any]],
         user_factory_with_environment: Callable[[Any, Any], Any] | None = None,
@@ -36,10 +37,12 @@ class Tau2FactorialRunner:
         max_errors: int = 10,
         evaluate: bool = True,
         request_budget: RequestBudget | None = None,
+        identity_tracker: ModelFingerprintTracker | None = None,
     ) -> None:
         self.tau2_source_commit = tau2_source_commit
         self.task_version = task_version
         self.environment_factory = environment_factory
+        self.environment_factory_with_task = environment_factory_with_task
         self.user_factory = user_factory
         self.module_factory = module_factory
         self.user_factory_with_environment = user_factory_with_environment
@@ -48,8 +51,11 @@ class Tau2FactorialRunner:
         self.max_errors = max_errors
         self.evaluate = evaluate
         self.request_budget = request_budget
+        self.identity_tracker = identity_tracker
         if self.evaluate and self.request_budget is None:
             raise ValueError("真实 ENV 运行必须显式提供 RequestBudget")
+        if self.evaluate and self.identity_tracker is None:
+            raise ValueError("真实 ENV 运行必须显式提供 ModelFingerprintTracker")
         self.agent_class = build_tau2_agent_class()
 
     def run(
@@ -84,7 +90,7 @@ class Tau2FactorialRunner:
     def _run_episode_once(
         self, task: Any, seed: int, configuration: dict[str, int]
     ) -> dict[str, Any]:
-        environment = self.environment_factory()
+        environment = self._make_environment(task)
         modules = self.module_factory(configuration)
         self._bind_runtime_controls(modules)
         agent = self.agent_class(
@@ -271,8 +277,36 @@ class Tau2FactorialRunner:
     def _bind_runtime_controls(self, modules: dict[str, Any]) -> None:
         for module in modules.values():
             client = getattr(module, "client", None)
-            if client is not None and self.request_budget is not None and hasattr(client, "budget"):
-                client.budget = self.request_budget
+            if client is None or self.request_budget is None or not hasattr(client, "budget"):
+                continue
+            if client.budget is not None and client.budget is not self.request_budget:
+                raise Tau2RunnerError("模块客户端携带了不同的 RequestBudget")
+            client.budget = self.request_budget
+            if self.identity_tracker is not None:
+                if (
+                    hasattr(client, "identity_tracker")
+                    and client.identity_tracker is not self.identity_tracker
+                ):
+                    raise Tau2RunnerError("模块客户端携带了不同的 ModelFingerprintTracker")
+                if hasattr(client, "identity_tracker"):
+                    client.identity_tracker = self.identity_tracker
+
+    def _make_environment(self, task: Any) -> Any:
+        if self.environment_factory_with_task is not None:
+            return self.environment_factory_with_task(task)
+        try:
+            signature = inspect.signature(self.environment_factory)
+            positional = [
+                parameter
+                for parameter in signature.parameters.values()
+                if parameter.kind
+                in (parameter.POSITIONAL_ONLY, parameter.POSITIONAL_OR_KEYWORD)
+            ]
+            if positional:
+                return self.environment_factory(task)  # type: ignore[misc]
+        except (TypeError, ValueError):
+            pass
+        return self.environment_factory()
 
     def _bind_user_runtime_controls(self, user: Any) -> None:
         if self.request_budget is None:
@@ -280,18 +314,34 @@ class Tau2FactorialRunner:
         for attribute in ("client", "llm_client", "deepseek_client"):
             client = getattr(user, attribute, None)
             if client is not None and hasattr(client, "budget"):
+                if client.budget is not None and client.budget is not self.request_budget:
+                    raise Tau2RunnerError("User Simulator 携带了不同的 RequestBudget")
                 client.budget = self.request_budget
+                if self.identity_tracker is not None and hasattr(client, "identity_tracker"):
+                    if client.identity_tracker is not self.identity_tracker:
+                        raise Tau2RunnerError("User Simulator 携带了不同的 ModelFingerprintTracker")
+                    client.identity_tracker = self.identity_tracker
 
     def _validate_model_consistency(self, modules: dict[str, Any], user: Any) -> None:
+        if set(modules) != set(SLOTS):
+            raise Tau2RunnerError(f"真实 ENV 运行要求四个模块槽位: {SLOTS}")
         clients = [getattr(module, "client", None) for module in modules.values()]
         clients = [client for client in clients if client is not None]
         if self.evaluate and len(clients) != len(modules):
             raise Tau2RunnerError("真实 ENV 运行要求四个模块均暴露 DeepSeek 客户端")
+        if self.evaluate and len({id(client) for client in clients}) != len(clients):
+            raise Tau2RunnerError("真实 ENV 运行要求四个模块使用不同的 DeepSeek 客户端")
         for client in clients:
             if getattr(client, "model", None) != "deepseek-flash":
                 raise Tau2RunnerError("模块客户端必须使用 deepseek-flash")
-            if getattr(client, "temperature", 0.0) != 0.0 or getattr(client, "max_output_tokens", 512) != 512:
+            if (
+                getattr(client, "temperature", 0.0) != 0.0
+                or getattr(client, "max_output_tokens", 512) != 512
+                or getattr(client, "max_input_tokens", 2000) != 2000
+                or getattr(client, "max_retries", 1) != 1
+            ):
                 raise Tau2RunnerError("模块客户端 decoding 配置不一致")
+            self._validate_client_runtime_controls(client)
         module_bases = {getattr(client, "base_url", "https://api.deepseek.com") for client in clients}
         if len(module_bases) > 1:
             raise Tau2RunnerError("模块客户端 base URL 不一致")
@@ -312,13 +362,48 @@ class Tau2FactorialRunner:
             raise Tau2RunnerError(
                 f"User Simulator model mismatch: expected deepseek-flash, observed {user_model}"
             )
+        if self.evaluate and user_client is None:
+            raise Tau2RunnerError("真实 ENV User Simulator 必须暴露受控 DeepSeek 客户端")
         if user_client is not None and (
             getattr(user_client, "temperature", 0.0) != 0.0
             or getattr(user_client, "max_output_tokens", 512) != 512
+            or getattr(user_client, "max_input_tokens", 2000) != 2000
+            or getattr(user_client, "max_retries", 1) != 1
         ):
             raise Tau2RunnerError("User Simulator decoding 配置不一致")
+        if self.evaluate and user_client is not None:
+            if id(user_client) in {id(client) for client in clients}:
+                raise Tau2RunnerError("User Simulator 必须使用独立的 DeepSeek 客户端")
+            self._validate_client_runtime_controls(user_client)
+            if user_client.budget is not self.request_budget:
+                raise Tau2RunnerError("五个客户端必须共享同一个 RequestBudget")
+            if user_client.identity_tracker is not self.identity_tracker:
+                raise Tau2RunnerError("五个客户端必须共享同一个 ModelFingerprintTracker")
+            if not hasattr(user_client, "drain_audit_events"):
+                raise Tau2RunnerError("User Simulator 客户端必须支持请求事件 drain")
+            try:
+                from .tau2_user_simulator import DeepSeekTau2UserSimulator
+            except ImportError as exc:
+                raise Tau2RunnerError("tau2 User Simulator 适配器不可用") from exc
+            if not isinstance(user, DeepSeekTau2UserSimulator):
+                raise Tau2RunnerError("禁止使用 stock tau2 UserSimulator")
+        if self.evaluate:
+            for client in clients:
+                if client.budget is not self.request_budget:
+                    raise Tau2RunnerError("五个客户端必须共享同一个 RequestBudget")
+                if client.identity_tracker is not self.identity_tracker:
+                    raise Tau2RunnerError("五个客户端必须共享同一个 ModelFingerprintTracker")
+                if not hasattr(client, "drain_audit_events"):
+                    raise Tau2RunnerError("模块客户端必须支持请求事件 drain")
         if module_bases and user_client is not None and getattr(user_client, "base_url", "https://api.deepseek.com") not in module_bases:
             raise Tau2RunnerError("User Simulator base URL 与模块不一致")
+
+    def _validate_client_runtime_controls(self, client: Any) -> None:
+        if self.evaluate and getattr(client, "budget", None) is None:
+            raise Tau2RunnerError("客户端缺少 RequestBudget")
+        http_client = getattr(client, "http_client", None)
+        if http_client is not None and getattr(http_client, "_trust_env", False):
+            raise Tau2RunnerError("客户端必须使用 trust_env=False 的直连 HTTPX")
 
     @staticmethod
     def _drain_request_events(modules: dict[str, Any], user: Any) -> list[dict[str, Any]]:

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NIL-CCEA Phase 0E.1 smoke pre-run manifest",
+  "type": "object",
+  "required": [
+    "manifest_version",
+    "code_sha",
+    "protocol_version",
+    "protocol_sha256",
+    "tau2_version",
+    "tau2_source_sha",
+    "tasks",
+    "seeds",
+    "configurations",
+    "model",
+    "client_roles",
+    "budget",
+    "primary_endpoint",
+    "manifest_sha256"
+  ],
+  "properties": {
+    "manifest_version": {"type": "string"},
+    "code_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "protocol_version": {"type": "string"},
+    "protocol_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "tau2_version": {"const": "1.0.1"},
+    "tau2_source_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "tasks": {"type": "array", "minItems": 2, "maxItems": 2},
+    "seeds": {"const": [0, 1]},
+    "configurations": {"type": "array", "minItems": 16, "maxItems": 16},
+    "model": {"type": "object"},
+    "client_roles": {"const": ["planner", "selector", "caller", "synthesizer", "user_simulator"]},
+    "budget": {"type": "object"},
+    "primary_endpoint": {"const": "EvaluationType.ENV.environment_reward"},
+    "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": true
+}

@@ -185,3 +185,23 @@ def build_deepseek_modules(client: DeepSeekClient, configuration: dict[str, int]
         "caller": DeepSeekCaller(client, configuration["caller"]),
         "synthesizer": DeepSeekSynthesizer(client, configuration["synthesizer"]),
     }
+
+
+def build_deepseek_modules_by_client(
+    clients: dict[str, DeepSeekClient], configuration: dict[str, int]
+) -> dict[str, object]:
+    """使用四个独立客户端构造四个模块。"""
+
+    expected = {"planner", "selector", "caller", "synthesizer"}
+    if set(clients) != expected:
+        raise ValueError(f"模块客户端槽位必须恰好为 {sorted(expected)}")
+    if len({id(client) for client in clients.values()}) != len(expected):
+        raise ValueError("四个模块必须使用四个不同的 DeepSeekClient")
+    return {
+        "planner": DeepSeekPlanner(clients["planner"], configuration["planner"]),
+        "selector": DeepSeekSelector(clients["selector"], configuration["selector"]),
+        "caller": DeepSeekCaller(clients["caller"], configuration["caller"]),
+        "synthesizer": DeepSeekSynthesizer(
+            clients["synthesizer"], configuration["synthesizer"]
+        ),
+    }
