@@ -1,6 +1,6 @@
 # Next Steps
 
-**Current task:** execute [Phase 0E provider-backed User Simulator and final smoke preflight](docs/EXECUTOR_PROMPT_PHASE0E.md).
+**Current task:** execute [Phase 0E.1 smoke factory, shared-budget enforcement, and protocol freeze](docs/EXECUTOR_PROMPT_PHASE0E.md).
 
 ## Frozen model decision
 
@@ -19,9 +19,10 @@ User-selected model: `deepseek-flash` for Planner, Selector, Caller, Synthesizer
 
 Peak cache-miss rates: $0.30/M input, $1.20/M output; cache-hit peak $0.006/M; off-peak half. Budget on peak cache-miss:
 - $0.0012144/request
-- $0.072864/episode
-- $4.663296/64-episode smoke; $9.326592 if every request retries once
-- $27.979776/384-episode pilot; $55.959552 if every request retries once
+- $0.145728/episode (120 logical requests); $0.291456 if every request retries once
+- $9.326592/64-episode smoke (7,680 normal requests); $18.653184 if every request retries once (15,360 physical attempts)
+- $55.959552/384-episode pilot (46,080 normal requests); $111.919104 if every request retries once (92,160 physical attempts)
+- Proposed 64-episode spend ceiling: $20.00, not authorized; separate $80 hard stop is not spending authorization
 
 Keep $80 smoke and $400 pilot hard caps. Recheck pricing before any paid call.
 
@@ -120,3 +121,32 @@ Smoke task candidate: retail task 5 + airline task 2, selected deterministically
 - Actual response model/fingerprint: unverified until first approved completion.
 - Paid 64-episode smoke: NOT AUTHORIZED / NOT STARTED.
 - Linkage-aware evolutionary search: not started.
+
+
+## Phase 0E.1 — exact remaining execution order
+
+1. Build a paid-smoke factory with five distinct DeepSeekClient objects: Planner, Selector, Caller, Synthesizer, User Simulator.
+2. Share the exact same RequestBudget object and ModelFingerprintTracker object across all five clients. Do not share the client object itself; module context and request-event attribution must remain separate.
+3. Add task-aware environment selection. The frozen task list mixes Retail 5 and Airline 2; choose a fresh environment from `task.user_scenario.instructions.domain` for every episode.
+4. Strengthen Tau2FactorialRunner so evaluate=True fails closed unless all five clients have identical model/endpoint/decoding, share the exact same budget/tracker objects, and expose event draining. Reject stock tau2 UserSimulator and shared module clients.
+5. Freeze an immutable smoke manifest containing code SHA, tau2 SHA, protocol hash, task IDs, seeds, all 16 configurations, request bounds, budget, model configuration, and Retail task 5 quality flag.
+6. Retain Retail task 5 unchanged with the explicit limitation in `docs/PHASE0E_PROTOCOL_DECISION.md`. Its tools do not enforce authenticated-user state; task reward_basis DB + NL_ASSERTION does not guarantee authentication compliance. No authentication/privacy/safety claim is allowed.
+7. Run the host no-API suite (current reported baseline: 39 pass, 12 tau2-dependent skips), pinned Python 3.12.16 + tau2 v1.0.1 suite (39 pass), 32-cell Orchestrator integration, new mixed-domain/factory tests, and final CI.
+8. Only after all checks pass, ask the user to approve the 64-episode paid smoke. Do not read `DEEPSEEK_API_KEY` or send a provider request before explicit approval.
+
+### Corrected smoke bounds
+
+- Each Agent response invokes Planner + Selector + one of Caller/Synthesizer: up to 3 model calls.
+- Conservative per-episode bound: 90 Agent module calls + 30 User Simulator calls = 120 logical requests.
+- One retry reserved per request: 240 physical attempts per episode.
+- 64 episodes: 7,680 normal logical requests / 15,360 maximum physical attempts.
+- Cost: $9.326592 without retries / $18.653184 with one retry for every request.
+- Proposed spend ceiling: $20.00 (NOT AUTHORIZED); separate hard stop: $80.
+- 384-episode pilot: $55.959552 without retries / $111.919104 with one retry for every request.
+
+### Current decisions
+
+- Model remains `deepseek-flash`, no thinking, direct `https://api.deepseek.com`.
+- Retail task 5 remains in the exploratory candidate, unchanged, with issue `issue_770466c1` disclosed.
+- No API key read, no DeepSeek API request, no paid Episode.
+- Linkage-aware evolutionary search remains NOT STARTED until reliable interaction measurements exist.
