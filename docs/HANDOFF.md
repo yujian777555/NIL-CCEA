@@ -15,7 +15,7 @@
 
 **Use DeepSeek Flash exclusively** for all module slots, Agent, and User Simulator:
 - API model alias: `deepseek-flash`
-- Current served model as of 2026-11-20: DeepSeek-V4.1-Flash-1017; alias is mutable.
+- Current served model publicly listed as of 2026-11-23: DeepSeek-V4.1-Flash-1017; alias is mutable.
 - OpenAI-compatible Chat Completions, base URL `https://api.deepseek.com`.
 - Disable thinking/CoT: `thinking={"type":"disabled"}`, `reasoning_effort="none"`.
 - JSON mode for structured content; Caller uses native Tool Calls and local schema validation.
