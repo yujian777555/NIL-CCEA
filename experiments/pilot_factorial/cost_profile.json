@@ -109,9 +109,9 @@
   "real_api_calls_started": 0,
   "paid_smoke_approval": "NOT_GRANTED",
   "user_simulator_preflight": {
-    "status": "IMPLEMENTED_PENDING_SMOKE_FACTORY_WIRING",
+    "status": "IMPLEMENTED_AND_WIRED_NO_API",
     "adapter": "src/nil_ccea/tau2_user_simulator.py",
-    "note": "The adapter is implemented and no-API tested. The smoke factory must create a distinct user client and four distinct module clients, sharing one RequestBudget and one ModelFingerprintTracker."
+    "note": "The adapter and five-client smoke factory are implemented and no-API tested. All five clients share one RequestBudget and one ModelFingerprintTracker while remaining distinct objects."
   },
   "max_total_logical_requests_per_episode": 120,
   "max_physical_requests_per_episode_with_one_retry": 240,
@@ -146,5 +146,14 @@
       "risk": "Retail tools do not enforce authenticated-user state before get_user_details/get_order_details. The domain policy requires authentication. Task 5 reward_basis is DB + NL_ASSERTION, not ACTION, so ENV reward does not guarantee authentication-sequence compliance.",
       "limitation": "Do not claim authentication, privacy, or policy-enforcement robustness from this task. Record authentication sequence as a diagnostic only. Do not patch or replace the pinned task."
     }
+  },
+  "smoke_factory_preflight": {
+    "status": "PASS_NO_API",
+    "module_client_roles": ["planner", "selector", "caller", "synthesizer"],
+    "user_client_role": "user_simulator",
+    "manifest_path": "experiments/pilot_factorial/manifests/phase0e1_smoke_prerun_bcc762e7118153.json",
+    "manifest_sha256": "66132bb3e7f83661b5acecfd95340da37162734287be72a2baca3384324ff0de",
+    "api_calls": 0,
+    "approval": "NOT_AUTHORIZED"
   }
 }

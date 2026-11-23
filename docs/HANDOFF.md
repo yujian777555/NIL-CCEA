@@ -122,3 +122,12 @@ The user has selected the model but has **not** authorized paid API calls. Keep 
 - Corrected cost profile: [experiments/pilot_factorial/cost_profile.json](../experiments/pilot_factorial/cost_profile.json).
 - Authoritative next prompt: [docs/EXECUTOR_PROMPT_PHASE0E.md](EXECUTOR_PROMPT_PHASE0E.md).
 - No API key read, no provider request, no paid Episode. Wait for explicit approval after smoke factory, mixed-domain tests, manifest, and CI pass.
+
+## Phase 0E.1 implementation update
+
+- Current code SHA: `bcc762e711815316dae17e4eef8bdbd4f2a815ee`.
+- Smoke Factory creates five distinct clients with one shared RequestBudget and one shared ModelFingerprintTracker.
+- Runner supports task-aware Retail/Airline environment selection and strict evaluated-run validation.
+- Immutable manifest: `experiments/pilot_factorial/manifests/phase0e1_smoke_prerun_bcc762e7118153.json`.
+- Manifest hash: `66132bb3e7f83661b5acecfd95340da37162734287be72a2baca3384324ff0de`.
+- Bounds: 7,680 logical requests, 15,360 physical reservations, `$9.326592` no retry, `$18.653184` retry-every-request, proposed `$20` ceiling, separate `$80` hard stop.

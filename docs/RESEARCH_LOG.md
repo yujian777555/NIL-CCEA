@@ -161,3 +161,9 @@
 - Protocol decision: retain user-selected Retail task 5 unmodified for the exploratory smoke and disclose open issue `issue_770466c1`. Pinned RetailTools does not enforce authenticated-user state for user/order reads; the task reward_basis is DB + NL_ASSERTION, not ACTION. This smoke cannot support authentication, privacy, or policy-enforcement claims. See `docs/PHASE0E_PROTOCOL_DECISION.md`.
 - Updated `cost_profile.json`, `PHASE0E_PREFLIGHT_REVIEW.md`, `PHASE0B_PROTOCOL_FREEZE.md`, `PILOT_DESIGN_R1.md`, `STATUS.md`, `NEXT_STEPS.md`, and `HANDOFF.md`. Expanded `EXECUTOR_PROMPT_PHASE0E.md` with exact smoke-factory, mixed-domain, budget, identity, manifest, test, and approval requirements.
 - No paid smoke was run. Linkage-aware evolutionary search remains not started pending trustworthy interaction measurements.
+- Added five-client Smoke Factory with distinct Planner, Selector, Caller, Synthesizer, and User Simulator clients.
+- Enforced one shared RequestBudget and one shared ModelFingerprintTracker by object identity. Module contexts remain separately attributable.
+- Added task-aware fresh Retail/Airline environment selection and guarded `scripts/run_tau2_smoke.py`.
+- Corrected bounds are 120 logical requests per episode, 240 physical reservations, 7,680 logical requests for 64 episodes, and 15,360 maximum physical attempts. Costs are `$9.326592` without retries and `$18.653184` with one retry per request.
+- Immutable manifest created at `experiments/pilot_factorial/manifests/phase0e1_smoke_prerun_bcc762e7118153.json` with hash `66132bb3e7f83661b5acecfd95340da37162734287be72a2baca3384324ff0de`.
+- Host and pinned no-API suites each pass 47 tests. API requests and key reads remain 0.

@@ -150,3 +150,11 @@ Smoke task candidate: retail task 5 + airline task 2, selected deterministically
 - Retail task 5 remains in the exploratory candidate, unchanged, with issue `issue_770466c1` disclosed.
 - No API key read, no DeepSeek API request, no paid Episode.
 - Linkage-aware evolutionary search remains NOT STARTED until reliable interaction measurements exist.
+
+## Phase 0E.1 implementation update
+
+- Smoke Factory is implemented in `src/nil_ccea/smoke_factory.py`.
+- Guarded CLI is `scripts/run_tau2_smoke.py`. `--dry-run` uses a fake key and sends no request.
+- Mixed-domain task selection, five-client identity checks, shared physical-attempt budget, and immutable manifest are covered by no-API tests.
+- Current manifest is `experiments/pilot_factorial/manifests/phase0e1_smoke_prerun_bcc762e7118153.json`, hash `66132bb3e7f83661b5acecfd95340da37162734287be72a2baca3384324ff0de`.
+- Host and pinned suites each report 47 tests. Paid approval remains pending.

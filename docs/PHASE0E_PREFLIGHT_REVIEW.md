@@ -138,6 +138,15 @@ Implement the five-client smoke factory, shared RequestBudget and identity track
 
 No DeepSeek request, API-key read, paid episode, significance test, algorithmic performance claim, or novelty claim is authorized by this review.
 
+## Phase 0E.1 implementation update
+
+- Smoke Factory creates five distinct DeepSeek clients with one shared RequestBudget and one shared ModelFingerprintTracker.
+- Runner task-aware environment selection covers Retail 5 and Airline 2, with fresh environments per episode.
+- Evaluated-run validation rejects shared module clients, separate budgets, mismatched identity trackers, stock tau2 UserSimulator, inconsistent decoding, and proxy-enabled transports.
+- Guarded dry-run CLI and immutable pre-run manifest are implemented.
+- Manifest hash: `66132bb3e7f83661b5acecfd95340da37162734287be72a2baca3384324ff0de`.
+- Host and pinned tau2 suites each pass 47 tests. No API key was read and no provider request was sent.
+
 ## 8. No-API implementation update
 
 The provider-backed adapter is implemented in `src/nil_ccea/tau2_user_simulator.py`.

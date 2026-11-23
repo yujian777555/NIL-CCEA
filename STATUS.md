@@ -5,6 +5,7 @@
 **Current workstream:** Phase 0E.1 — smoke factory wiring, shared-budget enforcement, and protocol freeze
 **Last verified handoff base before this status sync:** `81f89f38ef1adcb9dec5d081516572b3250bc5b1`
 **Latest verified CI:** `45102805659` — success on that handoff base
+**Phase 0E.1 current implementation SHA:** `bcc762e711815316dae17e4eef8bdbd4f2a815ee`
 **Active branch:** `phase0b-adapter-statistical-corrections`
 **Phase 0C implementation baseline SHA:** `f97467b8dcfb60a3d36cfd6638cd4e507509bc4a`
 **Phase 0D final implementation SHA:** `b1c197eb5973575ae2ffa7c5c4cfe0d0fc9bf3a9`
@@ -121,7 +122,7 @@ No real benchmark performance, statistical significance, algorithmic improvement
 | G2 Public provider docs | PASS on 2026-11-23 |
 | G2 Live returned model/fingerprint | NOT VERIFIED; requires first approved completion |
 | G2 Runner/accounting/retry contract | PASS for no-API code path; live identity unverified |
-| G3 No-API integration | PASS, 39 host and 39 pinned tau2 tests |
+| G3 No-API integration | PASS, 47 host and 47 pinned tau2 tests |
 | G3 Real-runner readiness | PASS for no-API scope only |
 | External independent review | PENDING |
 | G4 Paid exploratory smoke | NOT STARTED; no approval granted |
@@ -163,3 +164,12 @@ Historical 60-request cost estimates ($4.663296 without retries; $9.326592 with 
 - Retail task 5 decision: retain the user-selected task unmodified for this exploratory smoke, explicitly disclose open issue `issue_770466c1`, and make no authentication/privacy/policy-enforcement claim. Its ENV reward basis is DB + NL_ASSERTION, not ACTION; tool-level authentication is not enforced. See `docs/PHASE0E_PROTOCOL_DECISION.md`.
 - Updated cost profile, Phase 0E preflight review, Phase 0B protocol freeze, and Pilot Design R1. Authoritative execution prompt: `docs/EXECUTOR_PROMPT_PHASE0E.md`.
 - No smoke factory has been executed, no API key has been read, and no provider request has been sent. Paid smoke remains NOT AUTHORIZED / NOT STARTED.
+
+## Phase 0E.1 implementation update
+
+- Added five-client Smoke Factory with distinct Planner, Selector, Caller, Synthesizer, and User Simulator clients.
+- All five clients share one `RequestBudget` and one `ModelFingerprintTracker`, while retaining separate request-event streams.
+- Added mixed Retail/Airline environment selection, strict evaluated-run validation, guarded dry-run CLI, and immutable pre-run manifest generation.
+- Host suite passes 47 tests with tau2-dependent tests skipped. Pinned Python 3.12.16 + tau2-bench v1.0.1 passes all 47 tests.
+- Immutable manifest: `experiments/pilot_factorial/manifests/phase0e1_smoke_prerun_bcc762e7118153.json`.
+- Manifest SHA-256: `66132bb3e7f83661b5acecfd95340da37162734287be72a2baca3384324ff0de`.

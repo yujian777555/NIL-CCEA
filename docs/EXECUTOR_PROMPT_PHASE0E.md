@@ -243,3 +243,7 @@ The smoke measures integration reliability, trace/cost accounting, task executio
 After a valid smoke, the next separately approved study remains 12 tasks × 2 seeds × 16 configurations = 384 episodes, with corrected cost bounds above. Only after trustworthy interaction estimates should Linkage Learning and Linkage-aware Cooperative Co-evolution be implemented and compared under equal evaluation budgets.
 
 Do not stop the research because a task or wiring issue needs revision. Diagnose, version the protocol, and continue without fabricating evidence.
+
+## 2026-11-23 Phase 0E.1 implementation update
+
+Smoke Factory, task-aware mixed-domain environments, five-client shared-budget/shared-tracker validation, guarded dry-run CLI, and immutable pre-run manifest are implemented. Current code SHA is `bcc762e711815316dae17e4eef8bdbd4f2a815ee`. Manifest hash is `66132bb3e7f83661b5acecfd95340da37162734287be72a2baca3384324ff0de`. Host and pinned no-API suites each pass 47 tests. No API key was read and no provider request was sent.
