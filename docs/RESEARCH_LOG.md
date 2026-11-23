@@ -134,6 +134,7 @@
 - Added four pinned tau2 fake-client tests plus one runner integration test. They prove the LiteLLM generation path is not invoked, user tool calls preserve tau2 semantics, a shared RequestBudget can be attached, a real client event is linked to `module=user_simulator` and an episode, and the environment-aware user factory receives the shared budget and context.
 - Retail task 5 source inspection confirmed the selected task uses user and order lookup methods that lack an authentication-state check in the pinned retail tools. This is a material task-quality risk documented as `issue_770466c1`. The task remains frozen pending an explicit protocol decision, with no silent substitution.
 - The paid smoke factory still requires explicit adapter construction and shared-budget wiring. No API key was read and no DeepSeek request was sent.
+- The adapter and runner integration were committed as `d7273064ad20f4452347ec0680c3ec1e14278f18`. GitHub Actions run `45100451548` passed on that commit.
 
 
 ## 2026-11-23 — Phase 0E preflight audit

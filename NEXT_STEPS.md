@@ -112,6 +112,7 @@ Smoke task candidate: retail task 5 + airline task 2, selected deterministically
 
 - Phase 0D code and independent read-only review: PASS per reported evidence.
 - Phase 0D CI: PASS, run `45046796585` on SHA `b1c197eb5973575ae2ffa7c5c4cfe0d0fc9bf3a9`.
+- Phase 0E User Simulator adapter commit: `d7273064ad20f4452347ec0680c3ec1e14278f18`; CI run `45100451548` passed.
 - DeepSeek public docs/pricing: PASS; last checked 2026-11-23; no price change.
 - Task split membership: PASS for retail 5 and airline 2.
 - Retail task 5 known issue impact: NEEDS REVIEW.

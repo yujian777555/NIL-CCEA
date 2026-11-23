@@ -135,6 +135,8 @@ No DeepSeek request, API-key read, paid episode, significance test, algorithmic 
 
 The provider-backed adapter is implemented in `src/nil_ccea/tau2_user_simulator.py`.
 
+Current implementation commit: `d7273064ad20f4452347ec0680c3ec1e14278f18`. Final CI run on this commit: `45100451548`, success.
+
 - `DeepSeekTau2UserSimulator` preserves tau2 half-duplex `UserState` and message-role flipping.
 - Every completion routes through the injected NIL-CCEA `DeepSeekClient`.
 - Native user tool calls use tau2 `Tool.openai_schema` and are validated through `Tool.params` before becoming `UserMessage` tool calls.
