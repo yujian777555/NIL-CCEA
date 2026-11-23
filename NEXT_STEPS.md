@@ -7,7 +7,7 @@
 User-selected model: `deepseek-flash` for Planner, Selector, Caller, Synthesizer, Agent, and User Simulator.
 
 - Base URL: `https://api.deepseek.com`
-- Current served model as of 2026-11-20: DeepSeek-V4.1-Flash-1017; capture returned model and system fingerprint because the alias is mutable.
+- Current served model publicly listed as of 2026-11-23: DeepSeek-V4.1-Flash-1017; capture returned model and system fingerprint because the alias is mutable.
 - Thinking/CoT disabled: `thinking={"type":"disabled"}`, `reasoning_effort="none"`.
 - JSON mode for structured content; native Tool Calls for Caller; validate locally.
 - Temperature 0.0; max output 512; input cap 2,000.
