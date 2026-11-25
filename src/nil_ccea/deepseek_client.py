@@ -367,8 +367,15 @@ class DeepSeekClient:
                 "delivery_status": attempt.get("delivery_status", "unknown"),
                 "http_status": attempt.get("http_status"),
                 "usage": response.usage if response is not None and is_final else {},
+                "response_content": (
+                    response.content if response is not None and error is not None and is_final else None
+                ),
                 "input_token_upper_bound": input_upper if is_final else 0,
-                "input_bound_method": "utf8_serialized_request_bytes",
+                "input_bound_method": (
+                    "deepseek_v41_tokenizer_plus_64_margin"
+                    if self.tokenizer is not None
+                    else "utf8_serialized_request_bytes"
+                ),
                 "cost_upper_bound_usd": cost_upper if is_final else 0.0,
                 "cost_usd": actual_cost if response is not None and is_final else 0.0,
                 **({"error_type": type(error).__name__} if error is not None and is_final else {}),

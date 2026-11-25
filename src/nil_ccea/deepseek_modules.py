@@ -14,12 +14,12 @@ def _compact_text(value: Any, limit: int = 3500) -> str:
     return text if len(text) <= limit else text[:limit] + "…"
 
 
-def _compact_messages(messages: tuple[dict[str, Any], ...], limit: int = 4) -> list[dict[str, Any]]:
+def _compact_messages(messages: tuple[dict[str, Any], ...], limit: int = 3) -> list[dict[str, Any]]:
     selected = list(messages[-limit:])
     return [
         {
             **message,
-            "content": _compact_text(message.get("content", ""), 600),
+            "content": _compact_text(message.get("content", ""), 300),
         }
         for message in selected
     ]
@@ -57,7 +57,7 @@ def _context_payload(
         "task_version": context.task_version,
         "task_family": context.task_family,
         "visible_messages": _compact_messages(context.visible_messages),
-        "domain_policy": _compact_text(context.domain_policy, 1800),
+        "domain_policy": _compact_text(context.domain_policy, 1200),
         "tool_schemas": _compact_tool_schemas(
             context.tool_schemas, selected_name=selected_tool_name
         ),
