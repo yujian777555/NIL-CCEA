@@ -50,14 +50,16 @@ def _compact_tool_schemas(
 
 
 def _context_payload(
-    context: AgentContext, *, selected_tool_name: str | None = None
+    context: AgentContext, *, selected_tool_name: str | None = None, compact: bool = False
 ) -> dict[str, Any]:
     return {
         "task_id": context.task_id,
         "task_version": context.task_version,
         "task_family": context.task_family,
-        "visible_messages": _compact_messages(context.visible_messages),
-        "domain_policy": _compact_text(context.domain_policy, 1200),
+        "visible_messages": _compact_messages(
+            context.visible_messages, limit=2 if compact else 3
+        ),
+        "domain_policy": _compact_text(context.domain_policy, 800 if compact else 1200),
         "tool_schemas": _compact_tool_schemas(
             context.tool_schemas, selected_name=selected_tool_name
         ),
@@ -102,7 +104,7 @@ class DeepSeekSelector:
         self.module_version = f"selector.deepseek-flash.p{variant}.v1"
 
     def select(self, context: AgentContext, plan: Plan) -> Selection:
-        payload = {"context": _context_payload(context), "plan": plan.__dict__}
+        payload = {"context": _context_payload(context, compact=True), "plan": plan.__dict__}
         response = self.client.complete_json(
             [
                 {
