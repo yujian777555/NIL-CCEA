@@ -118,10 +118,14 @@ class DeepSeekSelector:
             ]
         )
         value = parse_json_content(response)
-        kind = value.get("kind", value.get("type"))
+        kind = value.get("kind")
+        if kind is None and value.get("action") in {"tool_call", "respond", "stop"}:
+            kind = value["action"]
+        if kind is None and value.get("type") in {"tool_call", "respond", "stop"}:
+            kind = value["type"]
         if kind not in {"tool_call", "respond", "stop"}:
             raise DeepSeekResponseError("Selector kind 无效")
-        tool_name = value.get("tool_name", value.get("name"))
+        tool_name = value.get("tool_name", value.get("name", value.get("tool")))
         if tool_name is not None and not isinstance(tool_name, str):
             raise DeepSeekResponseError("Selector tool_name 无效")
         return Selection(
@@ -214,7 +218,7 @@ class DeepSeekSynthesizer:
                             "context": _context_payload(context),
                             "plan": plan.__dict__,
                             "selection": selection.__dict__,
-                            "tool_result": tool_result,
+                            "tool_result": _compact_text(tool_result, 900),
                         },
                         ensure_ascii=False,
                     ),
