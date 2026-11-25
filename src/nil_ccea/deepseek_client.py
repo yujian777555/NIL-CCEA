@@ -327,8 +327,8 @@ class DeepSeekClient:
         if self.tokenizer is None:
             return len(serialized_input.encode("utf-8"))
         # Chat-template control tokens add a small fixed overhead. Reserve a
-        # conservative margin while keeping the declared 2,000-token cap.
-        return len(self.tokenizer.encode(serialized_input).ids) + 64
+        # fixed margin while keeping the declared 2,000-token cap.
+        return len(self.tokenizer.encode(serialized_input).ids) + 32
 
     def _record_attempt_events(
         self,
@@ -367,9 +367,7 @@ class DeepSeekClient:
                 "delivery_status": attempt.get("delivery_status", "unknown"),
                 "http_status": attempt.get("http_status"),
                 "usage": response.usage if response is not None and is_final else {},
-                "response_content": (
-                    response.content if response is not None and error is not None and is_final else None
-                ),
+                "response_content": response.content if response is not None and is_final else None,
                 "input_token_upper_bound": input_upper if is_final else 0,
                 "input_bound_method": (
                     "deepseek_v41_tokenizer_plus_64_margin"
