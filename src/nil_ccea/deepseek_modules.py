@@ -9,14 +9,46 @@ from .contracts import AgentContext, Plan, Selection, ToolCallProposal
 from .deepseek_client import DeepSeekClient, DeepSeekResponseError, parse_json_content
 
 
-def _context_payload(context: AgentContext) -> dict[str, Any]:
+def _compact_text(value: Any, limit: int = 3500) -> str:
+    text = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
+    return text if len(text) <= limit else text[:limit] + "…"
+
+
+def _compact_messages(messages: tuple[dict[str, Any], ...], limit: int = 6) -> list[dict[str, Any]]:
+    selected = list(messages[-limit:])
+    return [
+        {
+            **message,
+            "content": _compact_text(message.get("content", ""), 1200),
+        }
+        for message in selected
+    ]
+
+
+def _compact_tool_schemas(
+    schemas: tuple[dict[str, Any], ...], *, selected_name: str | None = None
+) -> list[dict[str, Any]]:
+    selected = [schema for schema in schemas if selected_name is None or schema.get("name") == selected_name]
+    if selected_name is None:
+        return [
+            {"name": schema.get("name"), "description": _compact_text(schema.get("description", ""), 240)}
+            for schema in selected
+        ]
+    return selected[:1]
+
+
+def _context_payload(
+    context: AgentContext, *, selected_tool_name: str | None = None
+) -> dict[str, Any]:
     return {
         "task_id": context.task_id,
         "task_version": context.task_version,
         "task_family": context.task_family,
-        "visible_messages": list(context.visible_messages),
-        "domain_policy": context.domain_policy,
-        "tool_schemas": list(context.tool_schemas),
+        "visible_messages": _compact_messages(context.visible_messages),
+        "domain_policy": _compact_text(context.domain_policy),
+        "tool_schemas": _compact_tool_schemas(
+            context.tool_schemas, selected_name=selected_tool_name
+        ),
         "step_index": context.step_index,
         "max_steps": context.max_steps,
         "plan_state": context.plan_state,
@@ -112,7 +144,13 @@ class DeepSeekCaller:
                 {
                     "role": "user",
                     "content": json.dumps(
-                        {"context": _context_payload(context), "plan": plan.__dict__, "selection": selection.__dict__},
+                            {
+                                "context": _context_payload(
+                                    context, selected_tool_name=selection.tool_name
+                                ),
+                                "plan": plan.__dict__,
+                                "selection": selection.__dict__,
+                            },
                         ensure_ascii=False,
                     ),
                 },
