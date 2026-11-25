@@ -65,7 +65,7 @@ def _context_payload(
         ),
         "step_index": context.step_index,
         "max_steps": context.max_steps,
-        "plan_state": context.plan_state,
+        "plan_state": _compact_text(context.plan_state, 600),
     }
 
 
