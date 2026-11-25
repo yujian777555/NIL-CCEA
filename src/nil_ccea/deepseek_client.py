@@ -189,6 +189,7 @@ class DeepSeekClient:
         output_usd_per_million: float = 1.20,
         budget: RequestBudget | None = None,
         identity_tracker: ModelFingerprintTracker | None = None,
+        tokenizer_path: str | None = None,
     ) -> None:
         if not api_key:
             raise ValueError("DeepSeekClient 需要显式 API key")
@@ -211,6 +212,14 @@ class DeepSeekClient:
         self.audit_events: list[dict[str, Any]] = []
         self.budget = budget
         self.identity_tracker = identity_tracker or ModelFingerprintTracker()
+        self.tokenizer = None
+        if tokenizer_path is not None:
+            try:
+                from tokenizers import Tokenizer
+
+                self.tokenizer = Tokenizer.from_file(tokenizer_path)
+            except Exception as exc:
+                raise ValueError(f"无法加载 DeepSeek tokenizer: {tokenizer_path}") from exc
         self.episode_context: dict[str, Any] = {}
         self._last_attempts: list[dict[str, Any]] = []
         self._owns_http_client = http_client is None
@@ -268,7 +277,8 @@ class DeepSeekClient:
             "tools": tools,
             "tool_choice": tool_choice,
         }
-        input_upper = len(json.dumps(input_material, ensure_ascii=False, sort_keys=True).encode("utf-8"))
+        serialized_input = json.dumps(input_material, ensure_ascii=False, sort_keys=True)
+        input_upper = self._count_input_tokens(serialized_input)
         cost_upper = estimate_cost(
             {"prompt_tokens": input_upper, "completion_tokens": self.max_output_tokens},
             input_usd_per_million=self.input_usd_per_million,
@@ -310,6 +320,15 @@ class DeepSeekClient:
             error=None,
         )
         return parsed
+
+    def _count_input_tokens(self, serialized_input: str) -> int:
+        """使用 DeepSeek V4.1 tokenizer 计数，未配置时退回保守字节上界。"""
+
+        if self.tokenizer is None:
+            return len(serialized_input.encode("utf-8"))
+        # Chat-template control tokens add a small fixed overhead. Reserve a
+        # conservative margin while keeping the declared 2,000-token cap.
+        return len(self.tokenizer.encode(serialized_input).ids) + 64
 
     def _record_attempt_events(
         self,

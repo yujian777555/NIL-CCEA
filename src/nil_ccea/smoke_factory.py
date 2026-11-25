@@ -99,7 +99,7 @@ class SmokeFactory:
         )
 
 
-def build_smoke_factory(api_key: str) -> SmokeFactory:
+def build_smoke_factory(api_key: str, *, tokenizer_path: str | None = None) -> SmokeFactory:
     if not api_key:
         raise ValueError("Smoke Factory 需要显式 api_key，且不会从环境变量读取")
     budget = RequestBudget(**SMOKE_BUDGET)
@@ -119,6 +119,7 @@ def build_smoke_factory(api_key: str) -> SmokeFactory:
             output_usd_per_million=1.20,
             budget=budget,
             identity_tracker=identity_tracker,
+            tokenizer_path=tokenizer_path,
         )
         for role in roles
     }

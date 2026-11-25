@@ -42,7 +42,7 @@
   "token_cap_per_request": {
     "input": 2000,
     "output": 512,
-    "enforcement": "DeepSeekClient uses a conservative UTF-8 serialized-request byte bound. The bound is fail-closed and includes messages, response_format, tools, and tool_choice. It is no looser than the declared token cap."
+    "enforcement": "DeepSeekClient uses the pinned DeepSeek V4.1 tokenizer when tokenizer_path is supplied, counts the serialized request, and adds a fixed 64-token chat-template margin. Without tokenizer_path it fails closed with a UTF-8 byte upper bound."
   },
   "budget_enforcement": {
     "pre_request_reservation": true,

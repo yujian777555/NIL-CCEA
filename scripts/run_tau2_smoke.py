@@ -30,6 +30,7 @@ def main() -> int:
     mode.add_argument("--paid-execute", action="store_true")
     parser.add_argument("--manifest", type=Path, default=Path("artifacts/phase0e1_smoke_prerun.json"))
     parser.add_argument("--output-dir", type=Path, default=Path("artifacts/phase0e1_smoke"))
+    parser.add_argument("--tokenizer-path", type=Path, default=None)
     args = parser.parse_args()
 
     if args.dry_run:
@@ -39,7 +40,10 @@ def main() -> int:
         if not api_key:
             raise SystemExit("--paid-execute 要求显式 DEEPSEEK_API_KEY。当前会话仍需用户批准。")
 
-    factory = build_smoke_factory(api_key)
+    factory = build_smoke_factory(
+        api_key,
+        tokenizer_path=str(args.tokenizer_path) if args.tokenizer_path else None,
+    )
     manifest = build_smoke_prerun_manifest(
         tau2_source_sha=TAU2_SOURCE_SHA,
         protocol_path="docs/PHASE0E_PROTOCOL_DECISION.md",
