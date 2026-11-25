@@ -85,7 +85,12 @@ class DeepSeekPlanner:
                         "termination_condition、unknowns。不得读取隐藏评测信息。"
                     ),
                 },
-                {"role": "user", "content": json.dumps(_context_payload(context), ensure_ascii=False)},
+                {
+                    "role": "user",
+                    "content": json.dumps(
+                        _context_payload(context, compact=True), ensure_ascii=False
+                    ),
+                },
             ]
         )
         value = parse_json_content(response)
