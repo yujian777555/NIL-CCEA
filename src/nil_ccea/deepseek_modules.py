@@ -118,10 +118,10 @@ class DeepSeekSelector:
             ]
         )
         value = parse_json_content(response)
-        kind = value.get("kind")
+        kind = value.get("kind", value.get("type"))
         if kind not in {"tool_call", "respond", "stop"}:
             raise DeepSeekResponseError("Selector kind 无效")
-        tool_name = value.get("tool_name")
+        tool_name = value.get("tool_name", value.get("name"))
         if tool_name is not None and not isinstance(tool_name, str):
             raise DeepSeekResponseError("Selector tool_name 无效")
         return Selection(

@@ -73,6 +73,14 @@ class DeepSeekModuleTests(unittest.TestCase):
         self.assertEqual(modules["caller"].module_version, "caller.deepseek-flash.p1.v1")
         self.assertEqual(modules["synthesizer"].module_version, "synthesizer.deepseek-flash.p0.v1")
 
+    def test_selector_accepts_provider_type_alias(self):
+        selector = DeepSeekSelector(
+            FakeDeepSeekClient(json_values=[{"type": "respond", "name": None}])
+        )
+        plan = Plan((), "done", (), "planner.test")
+        selection = selector.select(self.context, plan)
+        self.assertEqual(selection.kind, "respond")
+
 
 if __name__ == "__main__":
     unittest.main()
