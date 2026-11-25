@@ -171,7 +171,9 @@ class DeepSeekCaller:
                     "content": json.dumps(
                             {
                                 "context": _context_payload(
-                                    context, selected_tool_name=selection.tool_name
+                                    context,
+                                    selected_tool_name=selection.tool_name,
+                                    compact=True,
                                 ),
                                 "plan": plan.__dict__,
                                 "selection": selection.__dict__,
