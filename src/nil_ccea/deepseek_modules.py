@@ -57,15 +57,15 @@ def _context_payload(
         "task_version": context.task_version,
         "task_family": context.task_family,
         "visible_messages": _compact_messages(
-            context.visible_messages, limit=2 if compact else 3
+            context.visible_messages, limit=1 if compact else 3
         ),
-        "domain_policy": _compact_text(context.domain_policy, 800 if compact else 1200),
+        "domain_policy": _compact_text(context.domain_policy, 300 if compact else 1200),
         "tool_schemas": _compact_tool_schemas(
             context.tool_schemas, selected_name=selected_tool_name
         ),
         "step_index": context.step_index,
         "max_steps": context.max_steps,
-        "plan_state": _compact_text(context.plan_state, 600),
+        "plan_state": _compact_text(context.plan_state, 300 if compact else 600),
     }
 
 
