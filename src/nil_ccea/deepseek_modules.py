@@ -14,12 +14,12 @@ def _compact_text(value: Any, limit: int = 3500) -> str:
     return text if len(text) <= limit else text[:limit] + "…"
 
 
-def _compact_messages(messages: tuple[dict[str, Any], ...], limit: int = 6) -> list[dict[str, Any]]:
+def _compact_messages(messages: tuple[dict[str, Any], ...], limit: int = 4) -> list[dict[str, Any]]:
     selected = list(messages[-limit:])
     return [
         {
             **message,
-            "content": _compact_text(message.get("content", ""), 1200),
+            "content": _compact_text(message.get("content", ""), 600),
         }
         for message in selected
     ]
@@ -31,10 +31,22 @@ def _compact_tool_schemas(
     selected = [schema for schema in schemas if selected_name is None or schema.get("name") == selected_name]
     if selected_name is None:
         return [
-            {"name": schema.get("name"), "description": _compact_text(schema.get("description", ""), 240)}
+            {"name": schema.get("name"), "description": _compact_text(schema.get("description", ""), 120)}
             for schema in selected
         ]
-    return selected[:1]
+
+    def strip_descriptions(value: Any) -> Any:
+        if isinstance(value, dict):
+            return {
+                key: strip_descriptions(item)
+                for key, item in value.items()
+                if key != "description"
+            }
+        if isinstance(value, list):
+            return [strip_descriptions(item) for item in value]
+        return value
+
+    return [strip_descriptions(selected[0])] if selected else []
 
 
 def _context_payload(
@@ -45,7 +57,7 @@ def _context_payload(
         "task_version": context.task_version,
         "task_family": context.task_family,
         "visible_messages": _compact_messages(context.visible_messages),
-        "domain_policy": _compact_text(context.domain_policy),
+        "domain_policy": _compact_text(context.domain_policy, 1800),
         "tool_schemas": _compact_tool_schemas(
             context.tool_schemas, selected_name=selected_tool_name
         ),
