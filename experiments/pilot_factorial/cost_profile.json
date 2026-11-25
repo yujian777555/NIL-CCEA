@@ -42,7 +42,7 @@
   "token_cap_per_request": {
     "input": 2000,
     "output": 512,
-    "enforcement": "DeepSeekClient uses the pinned DeepSeek V4.1 tokenizer when tokenizer_path is supplied, counts the serialized request, and adds a fixed 32-token chat-template margin. Without tokenizer_path it fails closed with a UTF-8 byte upper bound."
+    "enforcement": "DeepSeekClient uses the pinned DeepSeek V4.1 tokenizer when tokenizer_path is supplied, counts the serialized request, and adds a fixed 8-token margin. Without tokenizer_path it fails closed with a UTF-8 byte upper bound."
   },
   "budget_enforcement": {
     "pre_request_reservation": true,
