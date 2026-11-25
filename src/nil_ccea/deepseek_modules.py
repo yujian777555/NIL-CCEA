@@ -118,6 +118,8 @@ class DeepSeekSelector:
             ]
         )
         value = parse_json_content(response)
+        if isinstance(value.get("content"), dict):
+            value = {**value, **value["content"]}
         kind = value.get("kind")
         if kind is None and value.get("action") in {"tool_call", "respond", "stop"}:
             kind = value["action"]
@@ -215,10 +217,10 @@ class DeepSeekSynthesizer:
                     "role": "user",
                     "content": json.dumps(
                         {
-                            "context": _context_payload(context),
+                            "context": _context_payload(context, compact=True),
                             "plan": plan.__dict__,
                             "selection": selection.__dict__,
-                            "tool_result": _compact_text(tool_result, 900),
+                            "tool_result": _compact_text(tool_result, 500),
                         },
                         ensure_ascii=False,
                     ),
