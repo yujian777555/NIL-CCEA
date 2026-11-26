@@ -67,6 +67,22 @@ else:
         raise DeepSeekResponseError(f"User Simulator 收到不支持的消息类型: {type(message).__name__}")
 
 
+    def _compact_openai_messages(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """保留系统指令与最近对话，确保 User Simulator 输入受控。"""
+
+        system = next((item for item in messages if item.get("role") == "system"), None)
+        history = [item for item in messages if item.get("role") != "system"][-6:]
+        compact: list[dict[str, Any]] = []
+        if system is not None:
+            compact.append({**system, "content": str(system.get("content", ""))[:1400]})
+        for item in history:
+            value = dict(item)
+            if isinstance(value.get("content"), str):
+                value["content"] = value["content"][:500]
+            compact.append(value)
+        return compact
+
+
     class DeepSeekTau2UserSimulator(UserSimulator):
         """保持 tau2 UserSimulator 接口并强制使用 NIL-CCEA DeepSeekClient。"""
 
@@ -110,7 +126,9 @@ else:
                 state.messages.append(message)
 
             messages = state.system_messages + state.flip_roles()
-            openai_messages = [_message_to_openai(item) for item in messages]
+            openai_messages = _compact_openai_messages(
+                [_message_to_openai(item) for item in messages]
+            )
             schemas = [tool.openai_schema for tool in self.tools or []]
             if schemas:
                 response = self.client.complete_tools(openai_messages, tools=schemas)
