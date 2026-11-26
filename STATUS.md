@@ -174,3 +174,13 @@ Historical 60-request cost estimates ($4.663296 without retries; $9.326592 with 
 - Host suite passes 47 tests with tau2-dependent tests skipped. Pinned Python 3.12.16 + tau2-bench v1.0.1 passes all 47 tests.
 - Immutable manifest: `experiments/pilot_factorial/manifests/phase0e1_smoke_prerun_bcc762e7118153.json`.
 - Manifest SHA-256: `66132bb3e7f83661b5acecfd95340da37162734287be72a2baca3384324ff0de`.
+
+## 2026-11-26 paid smoke execution outcome
+
+- User approval was received and the guarded CLI was used. No request was sent before approval.
+- The pinned tau2 dependency data and LiteLLM dependency were repaired before execution. These infrastructure repairs produced no API calls.
+- Multiple bounded diagnostic attempts were preserved. The final retry reached all 64 Episodes but stopped with 43 provider HTTP 402 responses caused by insufficient provider balance or account authorization.
+- Final artifact: `artifacts/phase0e1_smoke_20261125_retry9d`.
+- Final attempt status counts: 16 `agent_failed`, 48 `infra_failed`, 646 request events, approximately `$0.279` observed cost.
+- All preserved attempts together contain 5,621 request events and approximately `$2.258501544` observed cost, below the proposed `$20` ceiling. The final attempt is not a complete valid factorial dataset.
+- No interaction effect, significance result, algorithmic improvement, security claim, or novelty claim is reported.

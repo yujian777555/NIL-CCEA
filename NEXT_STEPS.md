@@ -159,3 +159,10 @@ Smoke task candidate: retail task 5 + airline task 2, selected deterministically
 - Current manifest is `experiments/pilot_factorial/manifests/phase0e1_smoke_prerun_bcc762e7118153.json`, hash `66132bb3e7f83661b5acecfd95340da37162734287be72a2baca3384324ff0de`.
 - Host and pinned suites each report 47 tests. Paid approval remains pending.
 - Final pushed documentation head: `bbf46d9688bd716c5bbdebc43fd5b8fb198e9193`; latest CI run `45105192442` succeeded.
+
+## Paid smoke stop state
+
+- Approval was received on 2026-11-25.
+- The final retry reached all 64 Episodes but was stopped after provider HTTP 402 responses. The final artifact is `artifacts/phase0e1_smoke_20261125_retry9d`.
+- Provider balance or account authorization must be repaired before any further request. No automatic retry or top-up was performed.
+- The partial records remain diagnostic only and cannot support interaction estimation.

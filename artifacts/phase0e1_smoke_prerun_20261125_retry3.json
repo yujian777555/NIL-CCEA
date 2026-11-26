@@ -1,0 +1,181 @@
+{
+  "manifest_version": "phase0e1-smoke-prerun-r1",
+  "code_sha": "64e98a212b2243d744e93b790b8985e833977286",
+  "protocol_version": "phase0e1-smoke-r1",
+  "protocol_sha256": "d28c398e6587dd17a97fe285d4a468f74d3b17526d078cf3a21d02761fd65bda",
+  "tau2_version": "1.0.1",
+  "tau2_source_sha": "fc0055dc4e0a316c3f83133267fbd6faaa770992",
+  "tasks": [
+    {
+      "id": "5",
+      "domain": "retail",
+      "split": "test",
+      "issue_id": "issue_770466c1"
+    },
+    {
+      "id": "2",
+      "domain": "airline",
+      "split": "test",
+      "issue_id": null
+    }
+  ],
+  "task_selection_rule": "first listed task from each frozen family list",
+  "seeds": [
+    0,
+    1
+  ],
+  "configurations": [
+    {
+      "planner": 0,
+      "selector": 0,
+      "caller": 0,
+      "synthesizer": 0
+    },
+    {
+      "planner": 0,
+      "selector": 0,
+      "caller": 0,
+      "synthesizer": 1
+    },
+    {
+      "planner": 0,
+      "selector": 0,
+      "caller": 1,
+      "synthesizer": 0
+    },
+    {
+      "planner": 0,
+      "selector": 0,
+      "caller": 1,
+      "synthesizer": 1
+    },
+    {
+      "planner": 0,
+      "selector": 1,
+      "caller": 0,
+      "synthesizer": 0
+    },
+    {
+      "planner": 0,
+      "selector": 1,
+      "caller": 0,
+      "synthesizer": 1
+    },
+    {
+      "planner": 0,
+      "selector": 1,
+      "caller": 1,
+      "synthesizer": 0
+    },
+    {
+      "planner": 0,
+      "selector": 1,
+      "caller": 1,
+      "synthesizer": 1
+    },
+    {
+      "planner": 1,
+      "selector": 0,
+      "caller": 0,
+      "synthesizer": 0
+    },
+    {
+      "planner": 1,
+      "selector": 0,
+      "caller": 0,
+      "synthesizer": 1
+    },
+    {
+      "planner": 1,
+      "selector": 0,
+      "caller": 1,
+      "synthesizer": 0
+    },
+    {
+      "planner": 1,
+      "selector": 0,
+      "caller": 1,
+      "synthesizer": 1
+    },
+    {
+      "planner": 1,
+      "selector": 1,
+      "caller": 0,
+      "synthesizer": 0
+    },
+    {
+      "planner": 1,
+      "selector": 1,
+      "caller": 0,
+      "synthesizer": 1
+    },
+    {
+      "planner": 1,
+      "selector": 1,
+      "caller": 1,
+      "synthesizer": 0
+    },
+    {
+      "planner": 1,
+      "selector": 1,
+      "caller": 1,
+      "synthesizer": 1
+    }
+  ],
+  "execution_order": "task order retail-5, airline-2; seed ascending; cfg-0000 through cfg-1111",
+  "model": {
+    "provider": "deepseek",
+    "requested_alias": "deepseek-flash",
+    "served_model_observed": null,
+    "system_fingerprint_observed": null,
+    "base_url": "https://api.deepseek.com",
+    "temperature": 0.0,
+    "thinking": {
+      "type": "disabled"
+    },
+    "max_input_tokens": 2000,
+    "max_output_tokens": 512
+  },
+  "client_roles": [
+    "planner",
+    "selector",
+    "caller",
+    "synthesizer",
+    "user_simulator"
+  ],
+  "client_policy": {
+    "distinct_clients": 5,
+    "shared_request_budget": true,
+    "shared_model_identity_tracker": true,
+    "direct_transport_trust_env": false
+  },
+  "budget": {
+    "max_requests": 15360,
+    "max_input_tokens": 30720000,
+    "max_output_tokens": 7864320,
+    "max_cost_usd": 20.0,
+    "episode_max_requests": 240,
+    "episode_max_input_tokens": 480000,
+    "episode_max_output_tokens": 122880,
+    "episode_max_cost_usd": 0.291456,
+    "normal_logical_requests": 7680,
+    "maximum_physical_attempts": 15360,
+    "per_request_upper_bound_usd": 0.0012144,
+    "total_no_retry_upper_bound_usd": 9.326592,
+    "total_one_retry_upper_bound_usd": 18.653184,
+    "proposed_spend_ceiling_usd": 20.0,
+    "hard_stop_usd": 80.0
+  },
+  "primary_endpoint": "EvaluationType.ENV.environment_reward",
+  "interpretation": "exploratory two-task diagnostic only",
+  "retail_task_quality_disclosure": {
+    "issue_id": "issue_770466c1",
+    "authentication_enforced": false,
+    "reward_basis": [
+      "DB",
+      "NL_ASSERTION"
+    ],
+    "scope": "no authentication, privacy, security, or policy-robustness claim"
+  },
+  "manifest_sha256": "c0c11ecf231d31b02fa078136853532045d6fdabbc72a56f857105907c5f2bb2"
+}

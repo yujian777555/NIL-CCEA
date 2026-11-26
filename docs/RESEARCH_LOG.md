@@ -168,3 +168,11 @@
 - Immutable manifest created at `experiments/pilot_factorial/manifests/phase0e1_smoke_prerun_bcc762e7118153.json` with hash `66132bb3e7f83661b5acecfd95340da37162734287be72a2baca3384324ff0de`.
 - Host and pinned no-API suites each pass 47 tests. API requests and key reads remain 0.
 - Final pushed documentation head: `bbf46d9688bd716c5bbdebc43fd5b8fb198e9193`; latest CI run `45105192442` succeeded.
+
+## 2026-11-26 — Approved smoke stopped by provider 402
+
+- User approval was received and the guarded paid path was used.
+- The first zero-request run exposed missing pinned tau2 User Simulator data. The second run exposed an over-conservative byte-based input cap. Later runs established tokenizer-based counting, compact prompts, provider model/fingerprint stability, and real tau2 execution.
+- The final retry reached all 64 Episodes but encountered 43 HTTP 402 responses. It recorded 16 agent failures, 48 infrastructure failures, 646 request events, and approximately `$0.279` observed cost.
+- Across preserved attempts, 5,621 request events and approximately `$2.258501544` were observed. No result is promoted as a complete factorial dataset.
+- The provider balance/account authorization condition is the current blocker. No automatic retry, top-up, or continuation was performed.

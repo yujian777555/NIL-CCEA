@@ -1,0 +1,9 @@
+{
+  "episodes": 64,
+  "status_counts": {
+    "agent_failed": 31,
+    "infra_failed": 2,
+    "success": 31
+  },
+  "api_calls": 1144
+}

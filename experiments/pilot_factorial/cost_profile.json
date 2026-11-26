@@ -106,8 +106,18 @@
     "model": "gpt-4.1-2025-04-14",
     "state": "historical_only_not_selected"
   },
-  "real_api_calls_started": 0,
-  "paid_smoke_approval": "NOT_GRANTED",
+  "real_api_calls_started": 5621,
+  "paid_smoke_approval": "GRANTED_2026-11-25",
+  "paid_execution_status": "STOPPED_PROVIDER_HTTP_402_NO_COMPLETE_DATASET",
+  "paid_execution_total_observed_cost_usd": 2.258501544,
+  "paid_execution_final_attempt": {
+    "artifact_dir": "artifacts/phase0e1_smoke_20261125_retry9d",
+    "episodes": 64,
+    "request_events": 646,
+    "status_counts": {"agent_failed": 16, "infra_failed": 48},
+    "provider_http_402_events": 43,
+    "valid_complete_dataset": false
+  },
   "user_simulator_preflight": {
     "status": "IMPLEMENTED_AND_WIRED_NO_API",
     "adapter": "src/nil_ccea/tau2_user_simulator.py",

@@ -134,3 +134,10 @@ The user has selected the model but has **not** authorized paid API calls. Keep 
 - Immutable manifest: `experiments/pilot_factorial/manifests/phase0e1_smoke_prerun_bcc762e7118153.json`.
 - Manifest hash: `66132bb3e7f83661b5acecfd95340da37162734287be72a2baca3384324ff0de`.
 - Bounds: 7,680 logical requests, 15,360 physical reservations, `$9.326592` no retry, `$18.653184` retry-every-request, proposed `$20` ceiling, separate `$80` hard stop.
+
+## Paid smoke stop state — 2026-11-26
+
+- User approval was received.
+- Final retry artifact: `artifacts/phase0e1_smoke_20261125_retry9d`.
+- Final status: 16 agent failures, 48 infrastructure failures, 43 HTTP 402 provider responses, 646 request events, approximately `$0.279` observed cost.
+- The full 64-cell factorial dataset is incomplete. Provider balance/account authorization must be repaired before any future execution. Existing artifacts must remain immutable.
