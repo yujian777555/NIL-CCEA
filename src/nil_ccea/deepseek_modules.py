@@ -132,6 +132,10 @@ class DeepSeekSelector:
             kind = value["type"]
         if kind is None and isinstance(value.get("content"), str):
             kind = "respond"
+        if kind is None and value.get("tool"):
+            kind = "tool_call"
+        if kind is None and value.get("action") == "transfer_to_human_agents":
+            kind = "tool_call"
         if kind not in {"tool_call", "respond", "stop"}:
             raise DeepSeekResponseError("Selector kind 无效")
         tool_name = value.get("tool_name", value.get("name", value.get("tool")))

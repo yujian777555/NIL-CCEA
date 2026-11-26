@@ -505,7 +505,14 @@ def parse_json_content(response: DeepSeekResponse) -> dict[str, Any]:
     try:
         value = json.loads(response.content)
     except json.JSONDecodeError as exc:
-        raise DeepSeekResponseError("JSON 模式返回无法解析") from exc
+        start = response.content.find("{")
+        end = response.content.rfind("}")
+        if start < 0 or end <= start:
+            raise DeepSeekResponseError("JSON 模式返回无法解析") from exc
+        try:
+            value = json.loads(response.content[start : end + 1])
+        except json.JSONDecodeError:
+            raise DeepSeekResponseError("JSON 模式返回无法解析") from exc
     if not isinstance(value, dict):
         raise DeepSeekResponseError("JSON 模式返回必须是对象")
     return value
