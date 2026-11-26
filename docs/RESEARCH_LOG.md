@@ -51,3 +51,128 @@
 - Added a tau2 `HalfDuplexAgent` adapter entry point with an explicit external-dependency gate. It is implemented but unvalidated against tau2.
 - Ran the local suite with eleven passing tests on host Python 3.10.1. The mock run generated 32 episodes and made zero real API calls. The synthetic positive interaction is a runner validation signal only and is not a research result.
 - G0 is PASS, source-level G1 is PASS, G2 is NEEDS_REVISION until the tau2 adapter and endpoint freeze are reviewed, and G3 is PASS for the mock scope.
+
+
+## 2026-11-19 — Independent review of Phase 0A implementation
+
+- Read-only review of PR #1 and the pinned tau2-bench v1.0.1 source completed.
+- Confirmed that tau2 v1.0.1 requires Python `>=3.12,<3.14`, its `Tool` exposes `params` and `openai_schema`, and its half-duplex agent receives user/tool/multi-tool messages.
+- Identified adapter schema extraction mismatch: current code reads `parameters` / `schema`, so real tool parameter schemas can be empty.
+- Identified statistical unit mismatch: current estimator bootstraps `(task_id, seed)` although the protocol requires task-level clusters and nested seeds.
+- Identified incomplete-cell handling that can average only available contexts after filtering failures, potentially changing the estimand.
+- Identified missing Selector-to-Caller consistency checks, missing real schema validation, unpersisted plan state, unknown task metadata defaults, and absence of pinned tau2 integration tests.
+- PR #1 remains open and unmerged. GitHub reports no status checks and no reviews on the reviewed SHA; the 11-test result remains executor-reported local evidence.
+- Created Phase 0B review and executor prompt. This is a code-review/handoff milestone only; no code correction, tau2 execution, paid API call, or benchmark experiment is claimed.
+
+## 2026-11-20 — Phase 0B corrections completed
+
+- Merged the remote Phase 0B review baseline without overwriting its independent review or executor prompt.
+- Corrected the estimator to task-level clusters with two nested seeds, complete 16 configurations, four contexts, duplicate rejection, explicit failure semantics, task-level bootstrap, permutation p-values, and Holm step-down for six pairs.
+- Corrected the tau2 adapter against real v1.0.1 classes. Tool schemas now come from `openai_schema`, arguments are validated through `params`, Selector/Caller mismatches fail closed, tool and multi-tool messages update public state, metadata and seed are injected, and invalid calls raise typed errors.
+- Added real tau2 no-API tests for 16 permission-invariant configurations, schema validation, multi-turn tool execution, state recovery, manifest metadata, and Orchestrator trajectories.
+- No paid API calls were made. Exploratory and formal cost caps are recorded in `docs/PHASE0B_PROTOCOL_FREEZE.md` and `experiments/pilot_factorial/cost_profile.json`.
+
+## 2026-11-20 — Phase 0B.1 pricing and smoke-readiness review
+
+- Verified OpenAI GPT-4.1 standard rates from the official model page: $2/M input, $0.50/M cached input, $8/M output. The active cost profile uses uncached input pricing and its upper-bound arithmetic is correct.
+- Confirmed `gpt-4.1-2025-04-14` is deprecated with announced shutdown date 2027-01-14; OpenAI lists `gpt-6-luna` as the recommended replacement. No model switch was made.
+- Recorded a reference-only GPT-6 Luna standard rate of $0.10/M input and $0.50/M output; Chat Completions function calling requires `reasoning_effort=none`.
+- Identified residual adapter control-flow issue: Caller is invoked before the action-kind branch, including respond/stop decisions.
+- Confirmed provider-backed module implementations and a real tau2 factorial runner are absent; the current runner/modules remain mock-only.
+- Identified practical-delta mismatch: code default/candidate is 0.05, while the protocol sensitivity table is for 0.10.
+- Marked the old 32-episode smoke planning row as superseded by the current 64-episode candidate.
+- PR #2 remains open and unmerged. GitHub reports zero status checks/check runs for its current head. No paid API calls were made.
+- Added Phase 0C handoff requirements. G2 remains NEEDS_REVISION; real-runner readiness is BLOCKED; G4 remains NOT STARTED.
+
+## 2026-11-20 — User selects DeepSeek Flash for NIL-CCEA
+
+- User explicitly selected `deepseek-flash` instead of the previously discussed OpenAI models.
+- Decision applies uniformly to Planner, Selector, Caller, Synthesizer, Agent, and User Simulator. No mixed-model factorial datasets.
+- Official DeepSeek docs identify the alias as serving DeepSeek-V4.1-Flash-1017 as of this date; because the alias is mutable, capture response model and system fingerprint on every request.
+- Fixed API configuration: OpenAI-compatible Chat Completions at `https://api.deepseek.com`; thinking/CoT disabled; JSON mode for structured outputs; temperature 0.0; output cap 512.
+- DeepSeek requests must bypass the system proxy via a dedicated HTTP client with `trust_env=false`; do not change global proxy settings.
+- Verified official peak rates: $0.30/M input cache miss, $0.006/M input cache hit, $1.20/M output; off-peak rates are half. Budget upper bounds use peak cache-miss rates.
+- New conservative estimates: $0.0012144/request; $0.072864/episode; $4.663296 for 64-episode smoke; $9.326592 with one retry on every request; $27.979776 for 384-episode pilot; $55.959552 with one retry on every request.
+- Model selection is not paid-run approval. No API call was made; paid smoke remains NOT STARTED.
+- Phase 0C now targets DeepSeek client/request-contract integration, four provider-backed modules, real tau2 runner, Caller control-flow correction, and no-key tests.
+
+## 2026-11-20 — Phase 0C implementation chain completed
+
+- Implemented the DeepSeek Flash client, provider-backed module wrappers, and real tau2 factorial runner.
+- Added request audit events, token/cost calculation, fingerprint tracking, direct no-proxy transport, JSON/native tool-call handling, and bounded retries.
+- Added Fake Client tests, binary provider variant tests, CI workflow, and a reproducible real tau2 no-API test script.
+- Host suite passes 29 tests with tau2 tests skipped when external tau2 is absent. Python 3.12.16 tau2 suite passes all 29 tests. DeepSeek API calls remain 0.
+- Real-runner no-API test executes 32 task-seed-configuration cells using real tau2 Orchestrator classes and local modules. The full 64-episode paid smoke remains unstarted.
+- GitHub Actions Phase 0C host workflow passes on final head `33db2fdf2603d6ba37975f82b3b9a9b0a90217b9`, run `44914720628`.
+
+
+## 2026-11-23 — Phase 0C closeout and Phase 0D preflight review
+
+- User-reported Phase 0C implementation completed at `f97467b8dcfb60a3d36cfd6638cd4e507509bc4a`; GitHub Actions run `44914883210` succeeded.
+- Reported evidence: 29 no-API tests passed in host and pinned Python 3.12.16/tau2 v1.0.1 environments; 32 real tau2 Orchestrator no-API cells; DeepSeek API calls 0.
+- PR #2 remains open and unmerged. GitHub review endpoints show no submitted review, no inline review threads, and no PR comments. External independent review remains pending; the executor's self-review is not independent.
+- Official DeepSeek docs were rechecked on 2026-11-23. They list `deepseek-flash`, served version DeepSeek-V4.1-Flash-1017, Chat Completions at `https://api.deepseek.com`, JSON Output, Tool Calls, disabled-thinking controls, and peak rates of $0.30/M cache-miss input, $0.006/M cache-hit input, and $1.20/M output. Public docs do not verify the actual response model/fingerprint for this account.
+- Preliminary read-only source inspection flagged retry-count mismatch, whole-episode replay, request audit events not durably linked to episodes, unenforced fingerprint identity, missing request/cost guards, and partial-trajectory loss on exceptions. These are review findings to reproduce and fix, not claims of benchmark failure.
+- A Phase 0D executor prompt was added. It is strictly no-API and requires independent review, code corrections, no-key regression tests, CI, and an explicit user approval request before any paid call.
+- Proposed smoke tasks are retail 5 and airline 2, selected by the deterministic first-listed-per-family rule from the locked test-task lists. The 64-episode smoke remains exploratory with two independent task clusters.
+- No paid API call, benchmark result, significance test, algorithmic performance gain, or novelty claim is recorded.
+## 2026-11-23 — Phase 0D independent review and accounting corrections
+
+- The corrected implementation was committed as `7f07bbfd75927bb35a6cabd466799aded8c5fb57` and pushed to `phase0b-adapter-statistical-corrections`. GitHub Actions run `45046604660` passed.
+
+- A separate read-only reviewer audited the Phase 0C DeepSeek client and tau2 runner against the Phase 0D executor prompt. The initial findings covered retry-policy mismatch, episode replay, delivery-unknown transport errors, in-memory request events, unenforced model identity, missing budgets, cache accounting, missing ENV reward handling, User Simulator consistency, and partial trajectory preservation.
+- The client now records one durable event per physical attempt with run and episode linkage, task, seed, configuration, module, request IDs, prompt hash, requested and returned model, fingerprint, delivery status, usage, actual cost, and conservative upper-bound cost. RequestBudget reserves the maximum retry profile before an outbound request and supports episode-scoped limits.
+- The runner no longer retries whole episodes. It writes raw episodes and request events incrementally, rebuilds a cost ledger after each episode, preserves partial trajectories, and quarantines the batch on model or fingerprint identity failure.
+- The declared 2,000 input-token limit is enforced with a conservative UTF-8 serialized-request byte bound covering messages, tools, response format, and tool choice. This is a fail-closed engineering bound and does not claim tokenizer-equivalent counts.
+- Host and pinned Python 3.12.16/tau2-bench v1.0.1 no-API suites each pass 34 tests. The pinned suite includes real tau2 classes and a 32-cell factorial runner. DeepSeek API calls remain 0 and no API key was read.
+- The 64-episode smoke remains exploratory and unauthorized. It uses retail task 5 and airline task 2, seeds 0/1, and all 16 configurations. No significance, performance gain, or novelty claim is made.
+
+## 2026-11-23 — Phase 0E User Simulator adapter correction
+
+- Pinned tau2 source review confirmed that stock `UserSimulator._generate_next_message` calls tau2 LiteLLM `completion()`. The existing `llm="deepseek-flash"` metadata check did not establish use of the controlled client, shared budget, fingerprint enforcement, or request ledger.
+- Added `src/nil_ccea/tau2_user_simulator.py`. The adapter preserves tau2 half-duplex state and role flipping, routes plain text and native user-tool responses through NIL-CCEA `DeepSeekClient`, validates user tool arguments against tau2 `Tool.params`, and exposes the inspectable `client` and `llm` attributes required by the runner.
+- Added four pinned tau2 fake-client tests plus one runner integration test. They prove the LiteLLM generation path is not invoked, user tool calls preserve tau2 semantics, a shared RequestBudget can be attached, a real client event is linked to `module=user_simulator` and an episode, and the environment-aware user factory receives the shared budget and context.
+- Retail task 5 source inspection confirmed the selected task uses user and order lookup methods that lack an authentication-state check in the pinned retail tools. This is a material task-quality risk documented as `issue_770466c1`. The task remains frozen pending an explicit protocol decision, with no silent substitution.
+- The paid smoke factory still requires explicit adapter construction and shared-budget wiring. No API key was read and no DeepSeek request was sent.
+- The adapter and runner integration were committed as `d7273064ad20f4452347ec0680c3ec1e14278f18`. GitHub Actions run `45100451548` passed on that commit.
+
+
+## 2026-11-23 — Phase 0E preflight audit
+
+- Verified reported Phase 0D final branch/PR #2 head `b1c197eb5973575ae2ffa7c5c4cfe0d0fc9bf3a9`; PR #2 remains open/unmerged. GitHub Actions run `45046796585` succeeded on this SHA.
+- Rechecked official DeepSeek public docs and pricing on 2026-11-23. The `deepseek-flash` alias, published served version DeepSeek-V4.1-Flash-1017, endpoint, JSON/Tool Call support, disabled-thinking setting, and prices remain unchanged. This is not a live account response identity check.
+- Verified that retail task 5 and airline task 2 are in the pinned tau2 v1.0.1 test split.
+- Found that retail task 5 metadata contains open issue `issue_770466c1`: the retail domain may allow user-level actions without authentication although its policy requires authentication. The issue's impact on task 5 and the ENV endpoint must be reviewed before the final pre-run freeze. No task substitution is permitted without a versioned protocol amendment.
+- Found a P0 UserSimulator integration gap in the pinned tau2 source: stock `UserSimulator._generate_next_message` calls tau2's `llm_utils.generate`, which calls LiteLLM `completion()`. NIL-CCEA's model-name check can accept `user.llm="deepseek-flash"` even when the user simulator bypasses the controlled DeepSeekClient, shared RequestBudget, request ledger, fingerprint validation, and direct transport.
+- Added `docs/PHASE0E_PREFLIGHT_REVIEW.md` and expanded `docs/EXECUTOR_PROMPT_PHASE0E.md` to require a provider-backed tau2 half-duplex UserSimulator adapter/subclass, shared budget and audit events, fake-client tests proving LiteLLM is not invoked, and task 5 issue impact assessment.
+- Updated STATUS, NEXT_STEPS, and HANDOFF to point to Phase 0E and record current SHA/CI.
+- No API key was read, no DeepSeek request was sent, and no paid episode was run. The 64-episode smoke remains NOT AUTHORIZED / NOT STARTED.
+
+
+## 2026-11-23 — Phase 0E.1 smoke-factory audit and protocol decisions
+
+- Verified the reported code/final SHA `d63bf1bd0062bb99b86ba61240caa4658835b5e7` as PR #2 head. PR #2 remains open/unmerged. GitHub Actions run `45100451548` on adapter code and `45100563417` on the final reported head both succeeded.
+- The provider-backed `DeepSeekTau2UserSimulator` is implemented and covered by the reported 39-test no-API suite (host: 39 passed, 12 tau2-dependent skips; pinned Python 3.12.16/tau2 v1.0.1: 39 passed). No API key was read and no DeepSeek request was sent.
+- Source-level inspection found that `build_deepseek_modules(client, configuration)` attaches one client instance to all four module wrappers. Since the runner sets module context on each slot, this can overwrite attribution. The paid factory must use four distinct module clients and a fifth distinct User Simulator client.
+- Source-level inspection found that `Tau2FactorialRunner` currently calls a no-argument `environment_factory()`. The 64-episode smoke mixes Retail 5 and Airline 2, so the runner needs task-aware domain environment selection with a fresh environment per episode.
+- The runner currently assigns the supplied RequestBudget where available but does not enforce object identity across all clients. Phase 0E.1 requires all five distinct clients to share one exact RequestBudget and one exact ModelFingerprintTracker, with fail-closed validation and per-role audit streams.
+- Corrected the request-count arithmetic from 60 to 120 logical requests per episode. Each Agent response calls Planner + Selector + one of Caller/Synthesizer (three requests); conservatively allow 30 Agent responses and 30 User Simulator responses. The 64-episode smoke therefore has 7,680 normal logical requests and 15,360 maximum physical attempts with one retry each.
+- Corrected 64-episode cost upper bounds to $9.326592 without retries and $18.653184 if every logical request is retried once. Proposed $20 spend ceiling is NOT AUTHORIZED; separate $80 hard stop remains a stop limit. Corrected 384-episode pilot bounds to $55.959552 / $111.919104.
+- Protocol decision: retain user-selected Retail task 5 unmodified for the exploratory smoke and disclose open issue `issue_770466c1`. Pinned RetailTools does not enforce authenticated-user state for user/order reads; the task reward_basis is DB + NL_ASSERTION, not ACTION. This smoke cannot support authentication, privacy, or policy-enforcement claims. See `docs/PHASE0E_PROTOCOL_DECISION.md`.
+- Updated `cost_profile.json`, `PHASE0E_PREFLIGHT_REVIEW.md`, `PHASE0B_PROTOCOL_FREEZE.md`, `PILOT_DESIGN_R1.md`, `STATUS.md`, `NEXT_STEPS.md`, and `HANDOFF.md`. Expanded `EXECUTOR_PROMPT_PHASE0E.md` with exact smoke-factory, mixed-domain, budget, identity, manifest, test, and approval requirements.
+- No paid smoke was run. Linkage-aware evolutionary search remains not started pending trustworthy interaction measurements.
+- Added five-client Smoke Factory with distinct Planner, Selector, Caller, Synthesizer, and User Simulator clients.
+- Enforced one shared RequestBudget and one shared ModelFingerprintTracker by object identity. Module contexts remain separately attributable.
+- Added task-aware fresh Retail/Airline environment selection and guarded `scripts/run_tau2_smoke.py`.
+- Corrected bounds are 120 logical requests per episode, 240 physical reservations, 7,680 logical requests for 64 episodes, and 15,360 maximum physical attempts. Costs are `$9.326592` without retries and `$18.653184` with one retry per request.
+- Immutable manifest created at `experiments/pilot_factorial/manifests/phase0e1_smoke_prerun_bcc762e7118153.json` with hash `66132bb3e7f83661b5acecfd95340da37162734287be72a2baca3384324ff0de`.
+- Host and pinned no-API suites each pass 47 tests. API requests and key reads remain 0.
+- Final pushed documentation head: `bbf46d9688bd716c5bbdebc43fd5b8fb198e9193`; latest CI run `45105192442` succeeded.
+
+## 2026-11-26 — Approved smoke stopped by provider 402
+
+- User approval was received and the guarded paid path was used.
+- The first zero-request run exposed missing pinned tau2 User Simulator data. The second run exposed an over-conservative byte-based input cap. Later runs established tokenizer-based counting, compact prompts, provider model/fingerprint stability, and real tau2 execution.
+- The final retry reached all 64 Episodes but encountered 43 HTTP 402 responses. It recorded 16 agent failures, 48 infrastructure failures, 646 request events, and approximately `$0.279` observed cost.
+- Across preserved attempts, 5,621 request events and approximately `$2.258501544` were observed. No result is promoted as a complete factorial dataset.
+- The provider balance/account authorization condition is the current blocker. No automatic retry, top-up, or continuation was performed.

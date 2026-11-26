@@ -1,0 +1,169 @@
+{
+  "status": "deepseek_flash_selected_no_paid_run_approval",
+  "provider": "deepseek",
+  "agent_model": "deepseek-flash",
+  "user_model": "deepseek-flash",
+  "module_models": {
+    "planner": "deepseek-flash",
+    "selector": "deepseek-flash",
+    "caller": "deepseek-flash",
+    "synthesizer": "deepseek-flash"
+  },
+  "model_alias": "deepseek-flash",
+  "model_version_as_of_2026_11_20": "DeepSeek-V4.1-Flash-1017",
+  "model_version_pinning": "API accepts the mutable alias deepseek-flash; record response.model and system_fingerprint on every request and detect backend drift.",
+  "api": {
+    "format": "OpenAI-compatible Chat Completions",
+    "base_url": "https://api.deepseek.com",
+    "endpoint": "/chat/completions"
+  },
+  "decoding": {
+    "temperature": 0,
+    "thinking": {
+      "type": "disabled"
+    },
+    "reasoning_effort": "none",
+    "response_format": {
+      "type": "json_object"
+    },
+    "system_instruction": "Return valid JSON only.",
+    "max_tokens": 512
+  },
+  "network": {
+    "policy": "direct_no_system_proxy",
+    "httpx_trust_env": false,
+    "note": "Configure a dedicated DeepSeek HTTP client with trust_env=false. Do not change global proxy settings."
+  },
+  "primary_evaluator": "ENV",
+  "max_steps_per_episode": 30,
+  "max_agent_requests_per_episode": 90,
+  "max_user_requests_per_episode": 30,
+  "max_infrastructure_retries_per_request": 1,
+  "token_cap_per_request": {
+    "input": 2000,
+    "output": 512,
+    "enforcement": "DeepSeekClient uses the pinned DeepSeek V4.1 tokenizer when tokenizer_path is supplied, counts the serialized request, and adds a fixed 8-token margin. Without tokenizer_path it fails closed with a UTF-8 byte upper bound."
+  },
+  "budget_enforcement": {
+    "pre_request_reservation": true,
+    "reservation_attempts": "max_retries + 1",
+    "episode_budget": "request, input-token, output-token, and cost caps are keyed by episode_id",
+    "raw_request_ledger": "request_events.jsonl",
+    "cost_ledger": "cost_ledger.json",
+    "request_count_semantics": "RequestBudget counters reserve physical attempts: each logical request reserves max_retries + 1 before sending.",
+    "smoke_worst_case_reservation": {
+      "max_requests": 15360,
+      "max_input_tokens": 30720000,
+      "max_output_tokens": 7864320,
+      "max_cost_usd": 20,
+      "episode_max_requests": 240,
+      "episode_max_input_tokens": 480000,
+      "episode_max_output_tokens": 122880,
+      "episode_max_cost_usd": 0.291456,
+      "status": "PROPOSED_NOT_AUTHORIZED"
+    },
+    "note": "All five clients (four distinct module clients plus one User Simulator client) must share the same RequestBudget object. These are conservative reservation caps for the 64-episode smoke."
+  },
+  "declared_rate_profile_usd_per_million_tokens": {
+    "input": 0.3,
+    "output": 1.2,
+    "input_cache_hit": 0.006,
+    "input_cache_miss_peak": 0.3,
+    "input_cache_hit_peak": 0.006,
+    "output_peak": 1.2,
+    "input_cache_miss_off_peak": 0.15,
+    "input_cache_hit_off_peak": 0.003,
+    "output_off_peak": 0.6
+  },
+  "pricing_verification": {
+    "verified_on": "2026-11-23",
+    "source": "Official DeepSeek API Models & Pricing",
+    "pricing_url": "https://api-docs.deepseek.com/quick_start/pricing/",
+    "peak_hours_utc": "01:00-04:00 and 06:00-10:00, Monday-Friday, excluding Chinese public holidays",
+    "budget_basis": "Peak rates and cache-miss input pricing; conservative upper bound independent of run time/cache hit rate.",
+    "model_features": [
+      "JSON Output",
+      "Tool Calls"
+    ],
+    "note": "Public docs rechecked 2026-11-23; prices unchanged. Recheck again immediately before any paid run. Actual account response model/fingerprint remains unverified.",
+    "last_public_document_recheck": "2026-11-23"
+  },
+  "derived_upper_bounds_usd": {
+    "per_request_peak_cache_miss": 0.0012144,
+    "per_episode_120_logical_requests_no_retry": 0.145728,
+    "per_episode_120_logical_requests_with_one_retry_each": 0.291456,
+    "exploratory_64_episodes_7680_requests_no_retry": 9.326592,
+    "exploratory_64_episodes_15360_physical_requests_with_one_retry_each": 18.653184,
+    "pilot_384_episodes_46080_requests_no_retry": 55.959552,
+    "pilot_384_episodes_92160_physical_requests_with_one_retry_each": 111.919104
+  },
+  "hard_caps_usd": {
+    "exploratory": 80,
+    "pilot": 400
+  },
+  "prior_provider_audit": {
+    "provider": "openai",
+    "model": "gpt-4.1-2025-04-14",
+    "state": "historical_only_not_selected"
+  },
+  "real_api_calls_started": 5621,
+  "paid_smoke_approval": "GRANTED_2026-11-25",
+  "paid_execution_status": "STOPPED_PROVIDER_HTTP_402_NO_COMPLETE_DATASET",
+  "paid_execution_total_observed_cost_usd": 2.258501544,
+  "paid_execution_final_attempt": {
+    "artifact_dir": "artifacts/phase0e1_smoke_20261125_retry9d",
+    "episodes": 64,
+    "request_events": 646,
+    "status_counts": {"agent_failed": 16, "infra_failed": 48},
+    "provider_http_402_events": 43,
+    "valid_complete_dataset": false
+  },
+  "user_simulator_preflight": {
+    "status": "IMPLEMENTED_AND_WIRED_NO_API",
+    "adapter": "src/nil_ccea/tau2_user_simulator.py",
+    "note": "The adapter and five-client smoke factory are implemented and no-API tested. All five clients share one RequestBudget and one ModelFingerprintTracker while remaining distinct objects."
+  },
+  "max_total_logical_requests_per_episode": 120,
+  "max_physical_requests_per_episode_with_one_retry": 240,
+  "request_count_basis": {
+    "max_steps": 30,
+    "agent_requests_per_agent_response": 3,
+    "agent_logical_requests_upper_bound": 90,
+    "user_logical_requests_upper_bound": 30,
+    "total_logical_requests_upper_bound": 120,
+    "total_physical_request_reservations_with_one_retry": 240,
+    "note": "Tau2FourModuleAgent invokes Planner + Selector + exactly one of Caller/Synthesizer for each Agent response. Tau2 Orchestrator max_steps is a bound on half-duplex transitions; using 30 Agent and 30 User responses is a conservative upper bound."
+  },
+  "request_upper_bounds": {
+    "exploratory_64_episodes": {
+      "episodes": 64,
+      "normal_logical_requests": 7680,
+      "maximum_physical_requests_with_one_retry_each": 15360
+    },
+    "pilot_384_episodes": {
+      "episodes": 384,
+      "normal_logical_requests": 46080,
+      "maximum_physical_requests_with_one_retry_each": 92160
+    }
+  },
+  "proposed_approval_ceiling_usd": 20,
+  "approval_ceiling_status": "PROPOSED_NOT_AUTHORIZED",
+  "task_quality_flags": {
+    "retail_task_5": {
+      "issue_id": "issue_770466c1",
+      "status": "open",
+      "decision": "RETAIN_UNMODIFIED_FOR_EXPLORATORY_SMOKE_WITH_EXPLICIT_DISCLOSURE",
+      "risk": "Retail tools do not enforce authenticated-user state before get_user_details/get_order_details. The domain policy requires authentication. Task 5 reward_basis is DB + NL_ASSERTION, not ACTION, so ENV reward does not guarantee authentication-sequence compliance.",
+      "limitation": "Do not claim authentication, privacy, or policy-enforcement robustness from this task. Record authentication sequence as a diagnostic only. Do not patch or replace the pinned task."
+    }
+  },
+  "smoke_factory_preflight": {
+    "status": "PASS_NO_API",
+    "module_client_roles": ["planner", "selector", "caller", "synthesizer"],
+    "user_client_role": "user_simulator",
+    "manifest_path": "experiments/pilot_factorial/manifests/phase0e1_smoke_prerun_bcc762e7118153.json",
+    "manifest_sha256": "66132bb3e7f83661b5acecfd95340da37162734287be72a2baca3384324ff0de",
+    "api_calls": 0,
+    "approval": "NOT_AUTHORIZED"
+  }
+}

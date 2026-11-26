@@ -19,7 +19,7 @@ def main() -> None:
         MockTask("mock-task-1", "mock-v1", "family-b"),
     ]
     runner = MockRunner(environment=MockEnvironment(fail_first_call=True))
-    records = runner.run(tasks, [0], output_dir=args.output, max_retries=1)
+    records = runner.run(tasks, [0, 1], output_dir=args.output, max_retries=1)
     estimate = estimate_pairwise_interaction(records, "planner", "selector")
     print(json.dumps({"episodes": len(records), "interaction": estimate.to_dict()}, indent=2))
 

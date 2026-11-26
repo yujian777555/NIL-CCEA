@@ -11,3 +11,12 @@ Required test classes before the pilot:
 7. edge-state classification, including `UNCERTAIN`;
 8. evaluation budget accounting for probes, retries, and failures;
 9. raw-data-to-summary reproducibility.
+
+Phase 0B adds `test_tau2_real_no_api.py`. It runs against the pinned tau2 v1.0.1 source in the independent Python 3.12 environment with a LiteLLM stub that raises on any completion call. The test covers real Tool schemas, Tool.params validation, HalfDuplexAgent construction, MultiToolMessage handling, plan_state persistence, task metadata injection, 16 configuration permission invariance, Orchestrator tool execution, and trajectory recovery.
+
+Reproduce the no-API run with:
+
+```powershell
+$env:NIL_CCEA_TAU2_SRC = "C:\path\to\tau2-bench-v1.0.1"
+.\scripts\run_tau2_no_api_tests.ps1
+```

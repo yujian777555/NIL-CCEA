@@ -154,6 +154,7 @@ class MockRunner:
                     configuration,
                     attempt=attempt,
                 )
+                episode_status = "agent_failed" if score <= 0 else "success"
                 self.ledger.add(
                     CostEvent(
                         event_id=str(uuid.uuid4()),
@@ -164,7 +165,7 @@ class MockRunner:
                         input_tokens=usage["input_tokens"],
                         output_tokens=usage["output_tokens"],
                         retry_index=attempt,
-                        status="retry" if attempt else "success",
+                        status="retry" if attempt else episode_status,
                         detail={"task_id": task.task_id},
                     )
                 )
@@ -179,7 +180,8 @@ class MockRunner:
                     "configuration": configuration,
                     "config_hash": manifest.config_hash,
                     "source_commit": manifest.source_commit,
-                    "status": "success",
+                    "status": episode_status,
+                    "failure_kind": "agent" if episode_status == "agent_failed" else None,
                     "primary_score": score,
                     "trajectory": trajectory,
                     "failures": failures,
@@ -202,7 +204,7 @@ class MockRunner:
                         provider=self.model["provider"],
                         model=self.model["model"],
                         retry_index=attempt,
-                        status="timeout" if isinstance(exc, TimeoutError) else "failed",
+                        status="infra_failed",
                         detail=failure,
                     )
                 )
@@ -217,7 +219,8 @@ class MockRunner:
             "configuration": configuration,
             "config_hash": manifest.config_hash,
             "source_commit": manifest.source_commit,
-            "status": "failed",
+            "status": "infra_failed",
+            "failure_kind": "infrastructure",
             "primary_score": None,
             "trajectory": [],
             "failures": failures,

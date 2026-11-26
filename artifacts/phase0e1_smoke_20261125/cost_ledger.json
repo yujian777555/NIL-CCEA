@@ -1,0 +1,13 @@
+{
+  "events": [],
+  "totals": {
+    "events": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "api_cost": 0,
+    "failed_events": 0,
+    "agent_failed_events": 0,
+    "infra_failed_events": 0,
+    "retry_events": 0
+  }
+}
